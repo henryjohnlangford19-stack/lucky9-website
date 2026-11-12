@@ -1,45 +1,40 @@
 # LUCKY 9 — Online arcade game
 
-A multiplayer-ready, account-based version of LUCKY 9. Players share one global leaderboard.
-
-## Requirements
-- Node.js 20 or newer
-- npm
+A multiplayer-ready version of LUCKY 9. Players share one global leaderboard.
 
 ## Run locally
-1. Extract the ZIP.
-2. Open a terminal in the `lucky9-website` folder.
-3. Run `npm install`.
-4. Copy `.env.example` to `.env`.
-5. Change `SESSION_SECRET` to a long random value.
-6. Run `npm start`.
-7. Open `http://localhost:3000`.
+1. Install Node.js 20 or newer.
+2. Create a free PostgreSQL project with Neon.
+3. Copy the pooled connection string from Neon into `.env` as `DATABASE_URL`.
+4. Copy `.env.example` to `.env` and set a long random `SESSION_SECRET`.
+5. Run `npm install`, then `npm start`.
+6. Open `http://localhost:3000`.
 
 ## Gameplay
 - Each round has 9 tiles: 8 gems and 1 hidden bomb.
-- Gem values grow with your streak: +10, +20, +30, and so on.
+- Each gem is worth 10 more points than the previous gem in that round.
 - Bank points to protect them and move to the next round.
 - Hit the bomb and lose only the current round's unbanked points.
-- Find all 8 gems to receive a round-scaled completion bonus; the perfect round is banked automatically.
+- Find all 8 gems to earn a round-scaled completion bonus; the perfect round is banked automatically.
 - Cash out to save your run score to the global leaderboard and earn XP.
-- Levels are based on XP. The first milestone is a 100-point best run.
+- Levels are based on XP.
 
 ## Accounts and security
-- Usernames are normalized to lowercase and restricted to 3–16 lowercase letters, digits, or underscores.
-- Usernames are unique, including case-insensitive uniqueness in SQLite.
+- Usernames are lowercase and restricted to 3–16 letters, digits, or underscores.
 - Passwords are hashed with bcrypt; plaintext passwords are never stored.
 - Login/register requests are rate-limited.
-- Sessions use an SQLite-backed session store and HTTP-only, same-site cookies.
-- Game picks and score calculations happen on the server, not in browser JavaScript.
+- Sessions, accounts, scores, and XP are stored in PostgreSQL.
+- Game picks and scoring happen on the server.
 
-## Put it online so other people can play
-This project includes a Render Blueprint in `render.yaml`.
+## Free deployment
+This project includes a Render Blueprint configured for a **Free** web service. It intentionally has no paid compute plan and no persistent disk.
 
-1. Create a private GitHub repository and upload the project files.
-2. In Render, choose **New → Blueprint** and connect that repository.
-3. Render reads `render.yaml`, creates the Node web service, generates a session secret, and provisions a persistent disk mounted at `data`.
-4. Deploy. Render provides a public HTTPS URL to share with players.
+The database is separate and uses Neon PostgreSQL. The Neon Free plan has finite usage limits and can suspend compute when a limit is reached, but the database contents remain stored. Set the Neon pooled connection string as the Render service's `DATABASE_URL` secret environment variable. Do not paste it into GitHub or public messages.
 
-The persistent disk is essential: the SQLite database and login sessions are stored in `data`. Do not remove it if you want accounts and scores to survive deploys. The included `/api/health` endpoint is used for deployment health checks.
+1. Create a Neon project on its Free plan and copy its pooled connection string.
+2. In Render, create a Blueprint from this repository.
+3. When prompted, enter the Neon connection string for `DATABASE_URL`.
+4. Review the resources and confirm the web service is on the Free plan before applying.
+5. After deployment, open the Render URL and test account creation, a run, cash-out, and the leaderboard.
 
-For a larger public launch, move to managed PostgreSQL and a shared session store, enable database backups, add email-based account recovery, and consider additional abuse prevention. This starter is intended for a small community launch.
+The free Render web service may sleep when idle and take around a minute to wake. Free-tier services are suitable for testing and hobby use, not guaranteed production uptime. Check provider usage limits and terms before inviting a large audience.
