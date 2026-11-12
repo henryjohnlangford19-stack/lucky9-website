@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090b12">
+  <title>LUCKY 9 — The Greed Game</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+  <header class="topbar">
+    <a class="brand" href="#"><span class="brand-gem">◆</span><span>LUCKY<span class="brand-nine">9</span></span></a>
+    <div class="top-actions">
+      <span id="connection" class="connection"><i></i> ONLINE</span>
+      <button id="accountButton" class="account-button">LOG IN <span>↗</span></button>
+    </div>
+  </header>
+  <main class="shell">
+    <section class="hero">
+      <div class="eyebrow"><span class="eyebrow-line"></span> THE GREED GAME <span class="eyebrow-line"></span></div>
+      <h1>HOW FAR WILL<br>YOU <span>RISK IT?</span></h1>
+      <p class="hero-copy">Eight gems. One bomb. Every pick makes the next one sweeter.</p>
+    </section>
+    <section class="stats-strip">
+      <div class="stat"><span class="stat-label">YOUR RUN BANK</span><strong id="runBank">0</strong></div>
+      <div class="stat"><span class="stat-label">ROUND</span><strong id="roundNumber">—</strong></div>
+      <div class="stat"><span class="stat-label">GEMS FOUND</span><strong id="gemsFound">0<span class="muted"> / 8</span></strong></div>
+      <div class="stat"><span class="stat-label">YOUR LEVEL</span><strong id="level">1</strong></div>
+    </section>
+    <div class="game-layout">
+      <section class="game-panel panel">
+        <div class="panel-heading"><div><div class="section-kicker">THE MINEFIELD</div><h2>Pick your tiles</h2></div><div class="risk-pill"><span></span> HIGH RISK</div></div>
+        <div class="round-message" id="message">Log in to start your run. Find gems, build your streak, and bank before the bomb finds you.</div>
+        <div class="board" id="board">
+          <button class="tile" disabled><span>01</span><b>?</b></button><button class="tile" disabled><span>02</span><b>?</b></button><button class="tile" disabled><span>03</span><b>?</b></button>
+          <button class="tile" disabled><span>04</span><b>?</b></button><button class="tile" disabled><span>05</span><b>?</b></button><button class="tile" disabled><span>06</span><b>?</b></button>
+          <button class="tile" disabled><span>07</span><b>?</b></button><button class="tile" disabled><span>08</span><b>?</b></button><button class="tile" disabled><span>09</span><b>?</b></button>
+        </div>
+        <div class="round-footer"><div class="at-risk"><span>POINTS AT RISK</span><strong id="atRisk">0</strong><small id="streak">STREAK ×0</small></div><div class="game-actions"><button id="bankButton" class="button button-secondary" disabled>BANK POINTS</button><button id="mainButton" class="button button-primary">LOG IN TO PLAY <span>→</span></button></div></div>
+        <div class="microcopy">Your bank is safe. Only the points in your current round are at risk.</div>
+      </section>
+      <aside class="side-column">
+        <section class="panel objective-panel"><div class="section-kicker">YOUR NEXT MILESTONE</div><div class="milestone-row"><div class="milestone-icon">✦</div><div><strong id="milestoneTitle">First fortune</strong><span id="milestoneSub">Bank your first 100 points</span></div></div><div class="progress-track"><div id="milestoneProgress" class="progress-fill"></div></div><div class="progress-meta"><span id="milestoneCurrent">0 / 100</span><span id="milestonePercent">0%</span></div></section>
+        <section class="panel profile-panel"><div class="section-kicker">PLAYER PROFILE</div><div id="profileEmpty" class="empty-profile"><div class="avatar">?</div><div><strong>Guest player</strong><span>Create an account to save progress</span></div></div><div id="profileData" class="profile-data hidden"><div class="avatar" id="avatar">—</div><div class="profile-info"><strong id="profileName">player</strong><span id="profileStats">Level 1 · 0 XP</span></div></div><div class="profile-metrics"><div><strong id="bestScore">0</strong><span>BEST RUN</span></div><div><strong id="lifetimeScore">0</strong><span>LIFETIME</span></div><div><strong id="gamesPlayed">0</strong><span>RUNS</span></div></div></section>
+        <section class="panel how-panel"><div class="section-kicker">HOW TO PLAY</div><div class="rule"><span class="rule-icon gem-icon">◆</span><p><strong>Find gems</strong><br>Each gem adds points. Your streak makes every gem worth more.</p></div><div class="rule"><span class="rule-icon bomb-icon">✹</span><p><strong>Avoid the bomb</strong><br>Hit it and lose the points you haven't banked.</p></div><div class="rule"><span class="rule-icon bank-icon">↗</span><p><strong>Know when to bank</strong><br>Bank safely, or push your luck for the perfect round bonus.</p></div></section>
+      </aside>
+    </div>
+    <section class="panel leaderboard-panel"><div class="leaderboard-head"><div><div class="section-kicker">THE HALL OF FAME</div><h2>Global leaderboard</h2><p>Best runs from players around the world.</p></div><div class="live-tag"><i></i> LIVE RANKINGS</div></div><div class="leaderboard-table-wrap"><table><thead><tr><th>RANK</th><th>PLAYER</th><th>BEST RUN</th><th>LIFETIME</th></tr></thead><tbody id="leaderboard"><tr><td colspan="4" class="table-loading">Loading players…</td></tr></tbody></table></div><div class="leaderboard-foot">Scores update when a player cashes out their run.</div></section>
+    <footer><span>◆ LUCKY 9</span><span>PLAY SMART. KNOW WHEN TO WALK AWAY.</span></footer>
+  </main>
+  <div id="modal" class="modal hidden"><div class="modal-backdrop" data-close="true"></div><div class="modal-card"><button id="closeModal" class="close-modal" aria-label="Close">×</button><div class="modal-mark">◆</div><div class="section-kicker">YOUR PLAYER ACCOUNT</div><h2 id="modalTitle">Welcome back</h2><p id="modalDescription">Log in to save your scores and join the global leaderboard.</p><div class="auth-tabs"><button id="loginTab" class="active">LOG IN</button><button id="registerTab">CREATE ACCOUNT</button></div><form id="authForm"><label for="username">USERNAME</label><input id="username" name="username" autocomplete="username" minlength="3" maxlength="16" placeholder="lowercase_username" required><div class="input-hint">3–16 characters · lowercase letters, numbers and _</div><label for="password">PASSWORD</label><input id="password" name="password" type="password" autocomplete="current-password" minlength="8" maxlength="72" placeholder="At least 8 characters" required><div id="authError" class="auth-error"></div><button id="authSubmit" class="button button-primary full-button" type="submit">LOG IN <span>→</span></button></form><div class="security-note">Passwords are securely hashed. Never reuse a password from another account.</div></div></div>
+  <div id="resultModal" class="modal hidden"><div class="modal-backdrop"></div><div class="modal-card result-card"><div class="modal-mark">✦</div><div class="section-kicker">RUN COMPLETE</div><h2 id="resultTitle">Cashed out!</h2><p id="resultText">Your score has been saved.</p><div class="result-score" id="resultScore">0</div><div class="result-caption">POINTS BANKED</div><button id="resultClose" class="button button-primary full-button">BACK TO THE GAME <span>→</span></button></div></div>
+  <script src="/app.js"></script>
+</body>
+</html>
