@@ -149,3 +149,21 @@ form label{color:#e9a36b}
 form input{background:#091522;color:#f6e4cb;border:1px solid #a96a4e;border-radius:2px}
 form input:focus{outline:2px solid #ec4e98}
 @media(max-width:560px){.hero{padding:56px 0 32px}.hero h1{font-size:clamp(48px,13vw,70px)}body:before{background-position:center;opacity:.24}.game-card{min-height:166px}}
+
+
+/* Typography inspired by the hand-lettered psychedelic packaging reference */
+.brand,.hero h1,.section-head h2,.play-title h2,.modal-card h2,.stats strong{
+  font-family:"Righteous","Bowlby One SC",sans-serif;
+  font-weight:400;
+  letter-spacing:.4px;
+}
+.brand{font-size:26px;letter-spacing:1px}
+.hero h1{font-size:clamp(56px,9vw,108px);letter-spacing:1px;line-height:.94;text-transform:uppercase}
+.section-head h2{letter-spacing:.6px}
+.game-card b{font-family:"Bowlby One SC","Righteous",sans-serif;font-weight:400;letter-spacing:.2px}
+.play-title h2,.modal-card h2{letter-spacing:.4px}
+.stats strong{font-size:29px}
+.account-button,.back-button,.start-button,.challenge-btn,.auth-tabs button,.ticker,.hero-stickers span,.game-card i,.eyebrow,.section-head small,.play-title small,footer{
+  font-family:"Bowlby One SC","DM Mono",sans-serif;
+  letter-spacing:1px;
+}
