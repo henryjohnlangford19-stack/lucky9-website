@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+<defs>
+ <filter id="m" x="-10%" y="-10%" width="120%" height="120%">
+  <feTurbulence type="fractalNoise" baseFrequency=".006 .011" numOctaves="2" seed="13" result="noise"/>
+  <feDisplacementMap in="SourceGraphic" in2="noise" scale="105" xChannelSelector="R" yChannelSelector="G"/>
+ </filter>
+ <linearGradient id="base" x2="1" y2="1"><stop stop-color="#061c2b"/><stop offset=".48" stop-color="#10142b"/><stop offset="1" stop-color="#21102c"/></linearGradient>
+ <linearGradient id="flow" x2="1" y2="1"><stop stop-color="#ff7d43"/><stop offset=".22" stop-color="#f4b94b"/><stop offset=".43" stop-color="#d5e83f"/><stop offset=".62" stop-color="#11b7a2"/><stop offset=".82" stop-color="#1685bb"/><stop offset="1" stop-color="#e83e9d"/></linearGradient>
+</defs>
+<rect width="1600" height="1000" fill="url(#base)"/>
+<g filter="url(#m)" fill="none" stroke-linecap="round">
+ <path d="M-100 120 C180 -80 300 380 570 160 S930 -80 1120 160 1420 420 1710 100" stroke="#f58b4c" stroke-width="110"/>
+ <path d="M-120 120 C180 -80 300 380 570 160 S930 -80 1120 160 1420 420 1710 100" stroke="#071a2b" stroke-width="76"/>
+ <path d="M-100 120 C180 -80 300 380 570 160 S930 -80 1120 160 1420 420 1710 100" stroke="#1b9ab0" stroke-width="34"/>
+ <path d="M-120 780 C170 500 330 1120 650 790 S990 520 1190 760 1470 990 1720 700" stroke="#ed5a9e" stroke-width="130"/>
+ <path d="M-120 780 C170 500 330 1120 650 790 S990 520 1190 760 1470 990 1720 700" stroke="#071a2b" stroke-width="91"/>
+ <path d="M-120 780 C170 500 330 1120 650 790 S990 520 1190 760 1470 990 1720 700" stroke="#f0c84a" stroke-width="48"/>
+ <path d="M250 -100 C80 180 570 260 350 500 S100 760 390 1110" stroke="#d9e844" stroke-width="90"/>
+ <path d="M250 -100 C80 180 570 260 350 500 S100 760 390 1110" stroke="#071a2b" stroke-width="59"/>
+ <path d="M250 -100 C80 180 570 260 350 500 S100 760 390 1110" stroke="#ff8545" stroke-width="25"/>
+ <path d="M1110 -120 C820 180 1320 250 1070 490 S900 800 1200 1120" stroke="#16b6a0" stroke-width="100"/>
+ <path d="M1110 -120 C820 180 1320 250 1070 490 S900 800 1200 1120" stroke="#071a2b" stroke-width="67"/>
+ <path d="M1110 -120 C820 180 1320 250 1070 490 S900 800 1200 1120" stroke="#f0bd48" stroke-width="30"/>
+</g>
+<g opacity=".65" fill="none" stroke="url(#flow)" stroke-width="5">
+ <path d="M0 320 Q200 170 370 340 T760 330 T1160 300 T1600 340"/>
+ <path d="M0 355 Q200 205 370 375 T760 365 T1160 335 T1600 375"/>
+ <path d="M0 390 Q200 240 370 410 T760 400 T1160 370 T1600 410"/>
+</g>
+</svg>
