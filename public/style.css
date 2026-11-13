@@ -76,3 +76,76 @@ body:before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;bac
 .play-area,.panel{background:rgba(20,15,30,.96);color:#f6e7d8;border:1px solid #e7774e;border-radius:4px;box-shadow:5px 5px 0 #d94391}.play-title h2{font-family:'Bowlby One SC',sans-serif;font-weight:400;color:#ff8a56}.play-title p,.play-foot span{color:#d5bcb8}.score-chip{background:#e8c94e;color:#181020;border:1px solid #f9e5a3;border-radius:2px}.game-stage{background:linear-gradient(rgba(17,12,27,.83),rgba(17,12,27,.9)),url('/psychedelic.svg') center/cover;border:1px solid #a94d70;border-radius:3px;color:#f6e7d8}.game-stage p{color:#e4c9be}.start-button{background:#ed7749;color:#160f20;border:1px solid #ffd16b;border-radius:2px;box-shadow:3px 3px 0 #e44896;font:700 10px 'DM Mono',monospace;letter-spacing:1.4px}.challenge-btn{background:#24172d;color:#f5e6d8;border:1px solid #e9784d;border-radius:3px;box-shadow:2px 2px 0 #d94391}.challenge-btn.active,.challenge-btn.good{background:#d8e447;color:#171020}.challenge-btn.bad{background:#ed4b9b;color:#180d20}
 .leaderboard th{color:#e5bd63;border-color:#744253}.leaderboard td{border-color:#573348;color:#f3e4d8}.player-link{color:#ff9a61}.footnote,footer{color:#c8aaa9}footer{border-top:1px solid #6b3b54}.live-pill{background:#191323;color:#e9d65d}.modal-shade{background:#080610e8}.modal-card{background:#1a1426;color:#f6e7d8;border:1px solid #ed784e;border-radius:4px;box-shadow:6px 6px 0 #e44896}.modal-card p,.security-note{color:#d2b9b7}.auth-tabs{background:#100d1b;border-radius:2px}.auth-tabs button{color:#ecd8cb}.auth-tabs button.active{background:#ed784e;color:#160f20;border-radius:2px}form label{color:#e9c75d}form input{background:#100d1b;color:#f8e8da;border:1px solid #92506a;border-radius:2px}form input:focus{outline:2px solid #e94b9c}.auth-error{color:#ff7d93}
 @media(max-width:560px){body:before{background-position:center;background-size:auto 100%;opacity:.34}.hero{padding:54px 0 30px}.hero h1{font-size:clamp(43px,12vw,65px);letter-spacing:0}.game-card{min-height:162px;padding:13px}.game-card b{font-size:16px}.game-card:before{opacity:.48}.pattern{display:none}}
+
+/* LUCKY 9 — liquid-marble / illustrated-label visual system */
+:root{--ink:#090f1b;--cream:#0a1522;--paper:#111c2a;--orange:#ff8748;--pink:#f04c9a;--blue:#0d7897;--lime:#e5d13f;--purple:#8246a1;--mint:#16a875;--line:#e5a34b}
+html{background:#081321}
+body{background:#081321;color:#f8e7cb;font-family:"DM Mono",monospace}
+body:before{content:"";position:fixed;inset:0;z-index:-3;pointer-events:none;background:url('/liquid-pattern.svg') center/cover fixed;opacity:.30;mix-blend-mode:screen}
+.pattern{z-index:-2;opacity:.22;filter:saturate(1.4)}
+.pattern-a{background:repeating-radial-gradient(ellipse at 48% 52%,#f38a42 0 7px,#071321 8px 13px,#087c9c 14px 20px,#071321 21px 27px,#e8d044 28px 34px);filter:contrast(1.4)}
+.pattern-b{background:repeating-conic-gradient(#f18a43 0 9deg,#071321 9deg 18deg,#0d809c 18deg 27deg,#e8d044 27deg 36deg,#111a29 36deg 45deg)}
+.pattern-c{background:repeating-radial-gradient(circle,#f04c9a 0 5px,#101b2b 6px 12px,#f2a04b 13px 19px,#0a758f 20px 26px)}
+.topbar{background:#080e1beF;border-bottom:2px solid #ed8b4c;backdrop-filter:blur(14px)}
+.brand{font-family:Fredoka,system-ui,sans-serif;font-weight:700;letter-spacing:1px;color:#ffe5c5;text-shadow:2px 2px #f04c9a}
+.brand-mark,.brand span:last-child{color:#f28a47}
+.account-button,.back-button{border:1px solid #f18c4b;border-radius:3px;background:#101d2b;color:#ffe7c7;box-shadow:3px 3px 0 #ec4b98}
+.connection,.eyebrow,.section-head small,.play-title small{color:#f1a15e}
+.hero{padding:82px 0 46px}
+.hero h1{font-family:Fredoka,system-ui,sans-serif;font-size:clamp(54px,9vw,104px);letter-spacing:-3px;line-height:.88;color:#f48b48;text-shadow:3px 3px #08111e,6px 6px #0b7593}
+.hero h1 span{color:#e9d044;text-shadow:3px 3px #08111e,6px 6px #ef4f98}
+.hero p{color:#d2c5b4;font-family:"DM Mono",monospace;font-size:13px;letter-spacing:.3px}
+.hero-stickers span{border:1px solid #f18a4b;border-radius:2px;background:#101d2b;color:#f9d7b5;box-shadow:2px 2px #ec4b98;transform:none!important}
+.hero-stickers span:nth-child(2){background:#132f3c;color:#55d6b5}.hero-stickers span:nth-child(3){background:#302038;color:#f4a3ce}
+.ticker{background:#ed7847;color:#101622;border:1px solid #ffd16c;border-radius:2px;box-shadow:5px 5px #ec4b98}
+.ticker b{color:#081521}
+.stats>div,.play-area,.panel{background:linear-gradient(145deg,#172333,#0b1725);border:1px solid #b96c4d;border-radius:3px;box-shadow:4px 4px #070c16}
+.stats small{color:#e99a61}.stats strong{color:#f2d34b;font-family:Fredoka,system-ui,sans-serif}
+.section-head h2{font-family:Fredoka,system-ui,sans-serif;color:#ffe7c8}.section-head h2 span{color:#ef559b}
+.free-pill,.live-pill,.game-tag{border:1px solid #f28a4a;border-radius:2px;background:#122637;color:#f4d9b9}
+.game-grid{gap:13px}
+.game-card{border:1px solid #d8894d;border-radius:3px;color:#101724;box-shadow:4px 4px #060b14;position:relative;overflow:hidden}
+.game-card:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.26;background:repeating-radial-gradient(ellipse at 50% 50%,transparent 0 10px,#101724 11px 13px,transparent 14px 22px)}
+.game-card b{font-family:Fredoka,system-ui,sans-serif;font-size:21px;letter-spacing:-.3px}
+.game-card small{color:#182333;font-family:"DM Mono",monospace;font-size:10px}
+.game-card i{letter-spacing:1.5px}
+.game-card:hover{transform:translateY(-4px);box-shadow:6px 7px #060b14}
+.peach{background:linear-gradient(135deg,#f28a4a,#e5c743 48%,#087e9b)}
+.blue{background:linear-gradient(135deg,#0d7897,#1d4359 55%,#ec8b4b)}
+.lilac{background:linear-gradient(135deg,#9c4e9b,#e44f99 55%,#f1a24c)}
+.lime{background:linear-gradient(135deg,#d9d044,#139f70 60%,#087b93)}
+.orange{background:linear-gradient(135deg,#f28b46,#e7c642 60%,#e44d8c)}
+.pink{background:linear-gradient(135deg,#ed5599,#8a4d91 60%,#132b3d)}
+.mint{background:linear-gradient(135deg,#12a77b,#0b7892 55%,#e7c846)}
+.yellow{background:linear-gradient(135deg,#e9d044,#ef8a47 58%,#e44f98)}
+.violet{background:linear-gradient(135deg,#824a9b,#145e83 60%,#f18a49)}
+.teal{background:linear-gradient(135deg,#0b8b9b,#15a77b 60%,#e4c642)}
+.play-area,.panel{color:#f6e4c9}
+.play-title h2{font-family:Fredoka,system-ui,sans-serif;color:#f7d3aa}
+.play-title p,.play-foot span,.footnote{color:#b7b2a8}
+.score-chip{background:#f0d047;color:#101724;border:1px solid #f7a04c;border-radius:2px}
+.game-stage{background:radial-gradient(ellipse at 50% 30%,#203b4a,#091521 78%);border:1px dashed #e88c4b;border-radius:3px;color:#f8e6ca}
+.game-stage p{color:#c7b9a9}
+.start-button{background:linear-gradient(100deg,#f18a48,#e8d047);color:#101724;border:1px solid #ffe0a2;border-radius:2px;box-shadow:4px 4px #e64d98}
+.challenge-btn{background:#172d3d;color:#f8e4c5;border:1px solid #ef8a4a;border-radius:3px;box-shadow:2px 2px #e84c97}
+.challenge-btn.active,.challenge-btn.good{background:#16a875;color:#061721}
+.challenge-btn.bad{background:#e94f96}
+.reaction-pad{border:2px solid #f18b4b;border-radius:3px;background:#e98947;color:#111a27}
+.reaction-pad.ready{background:#16a875}
+.dodge-lane{background:#091522;border:1px solid #ef8b4a;border-radius:3px}
+.dodge-player{background:#e6d044;border-radius:3px}
+.dodge-obstacle{background:#ef4f98;border-radius:3px}
+.leaderboard th{color:#f1a15e;border-color:#8c5948}
+.leaderboard td{color:#f4e2c8;border-color:#314150}
+.player-link{color:#e8d047}
+footer{color:#e8a16c;border-top:1px solid #774c43}
+.modal-shade{background:#030811e8}
+.modal-card{background:#111d2c;color:#f6e2c7;border:1px solid #ef8b4b;border-radius:3px;box-shadow:6px 6px #ed4e98}
+.modal-card p,.security-note{color:#c1b5a7}
+.auth-tabs{background:#091522;border-radius:2px}
+.auth-tabs button{color:#f4d9b7}
+.auth-tabs button.active{background:#e9cf43;color:#111a27}
+form label{color:#e9a36b}
+form input{background:#091522;color:#f6e4cb;border:1px solid #a96a4e;border-radius:2px}
+form input:focus{outline:2px solid #ec4e98}
+@media(max-width:560px){.hero{padding:56px 0 32px}.hero h1{font-size:clamp(48px,13vw,70px)}body:before{background-position:center;opacity:.24}.game-card{min-height:166px}}
