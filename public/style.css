@@ -314,3 +314,6 @@ button,[role="button"]{touch-action:manipulation}
  .bingo-grid{gap:2px}
  .bingo-cell{font-size:10px}
 }
+
+.rules-card{width:min(100%,760px);margin:0 auto;padding:18px 20px;border:1px solid #9c674f;background:rgba(22,17,31,.88);color:#f3e5d1;line-height:1.65;font-size:13px;text-align:left}.rules-heading{font:700 10px "DM Mono",monospace;letter-spacing:1.5px;color:#e8c64e;margin-bottom:9px}.rules-card .small-note{margin-top:12px;color:#d9b4ad}
+@media(max-width:560px){.rules-card{padding:14px;font-size:12px}}
