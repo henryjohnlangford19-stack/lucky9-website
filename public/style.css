@@ -440,3 +440,8 @@ img,svg,video,canvas{max-width:100%;height:auto}
     line-height:1.16!important;
   }
 }
+
+/* LUCKY 9 — use the selected wiggly display typeface consistently */
+*, *::before, *::after {
+  font-family: "Rubik Beastly", cursive !important;
+}
