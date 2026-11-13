@@ -284,6 +284,18 @@ app.post("/api/game/cashout", requireAuth, asyncRoute(async (req, res) => {
   res.json({ score, xpEarned: xp, user: publicUser(await getUser(req.session.userId)) });
 }));
 
+
+const arcadeGames = new Set(["gem-match","reaction-rush","memory-wave","colour-chaos","number-rush","shape-shift","neon-dodge","quick-math","tile-tap","pattern-pop"]);
+app.post("/api/arcade/score", requireAuth, asyncRoute(async (req, res) => {
+  const gameId = String(req.body.gameId || "");
+  const score = Number(req.body.score);
+  if (!arcadeGames.has(gameId)) return res.status(400).json({ error: "Unknown arcade game." });
+  if (!Number.isSafeInteger(score) || score < 0 || score > 10000) return res.status(400).json({ error: "Invalid score." });
+  const xp = Math.max(1, Math.floor(score / 10));
+  await pool.query("UPDATE users SET best_score = GREATEST(best_score, $1), lifetime_score = lifetime_score + $1, games_played = games_played + 1, xp = xp + $2 WHERE id = $3", [score, xp, req.session.userId]);
+  res.json({ user: publicUser(await getUser(req.session.userId)), xpEarned: xp });
+}));
+
 app.get("*", (req, res) => res.sendFile(path.join(__dirname, "public", "index.html")));
 app.use((error, req, res, next) => {
   console.error("Request failed:", error.message);
