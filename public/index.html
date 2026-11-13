@@ -1,61 +1,36 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#090b12">
-  <title>LUCKY 9 — The Greed Game</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#fff0d8">
+<title>LUCKY 9 — Play in full colour</title>
+<meta name="description" content="Ten colourful, free-to-play arcade challenges. Play, collect points and climb the leaderboard.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script>
 </head>
 <body>
-  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
-  <header class="topbar">
-    <a class="brand" href="#"><span class="brand-gem">◆</span><span>LUCKY<span class="brand-nine">9</span></span></a>
-    <div class="top-actions">
-      <span id="connection" class="connection"><i></i> ONLINE</span>
-      <button id="accountButton" class="account-button">LOG IN <span>↗</span></button>
-    </div>
-  </header>
-  <main class="shell">
-    <section class="hero">
-      <div class="eyebrow"><span class="eyebrow-line"></span> THE GREED GAME <span class="eyebrow-line"></span></div>
-      <h1>HOW FAR WILL<br>YOU <span>RISK IT?</span></h1>
-      <p class="hero-copy">Eight gems. One bomb. Every pick makes the next one sweeter.</p>
-    </section>
-    <section class="stats-strip">
-      <div class="stat"><span class="stat-label">YOUR RUN BANK</span><strong id="runBank">0</strong></div>
-      <div class="stat"><span class="stat-label">ROUND</span><strong id="roundNumber">—</strong></div>
-      <div class="stat"><span class="stat-label">GEMS FOUND</span><strong id="gemsFound">0<span class="muted"> / 8</span></strong></div>
-      <div class="stat"><span class="stat-label">YOUR LEVEL</span><strong id="level">1</strong></div>
-    </section>
-    <div class="game-layout">
-      <section class="game-panel panel">
-        <div class="panel-heading"><div><div class="section-kicker">THE MINEFIELD</div><h2>Pick your tiles</h2></div><div class="risk-pill"><span></span> HIGH RISK</div></div>
-        <div class="board-settings"><label>BOARD <select id="tileCount"><option value="9">9 TILES</option><option value="16">16 TILES</option><option value="25">25 TILES</option><option value="36">36 TILES</option></select></label><label>MINES <select id="mineCount"><option value="1">1 MINE</option><option value="2">2 MINES</option><option value="3" selected>3 MINES</option><option value="4">4 MINES</option><option value="5">5 MINES</option><option value="6">6 MINES</option><option value="8">8 MINES</option><option value="10">10 MINES</option><option value="12">12 MINES</option></select></label><span id="odds">Choose a board to see the odds</span></div>
-        <div class="round-message" id="message">Log in to start your run. Find gems, build your streak, and bank before the bomb finds you.</div>
-        <div class="board" id="board">
-          <button class="tile" disabled><span>01</span><b>?</b></button><button class="tile" disabled><span>02</span><b>?</b></button><button class="tile" disabled><span>03</span><b>?</b></button>
-          <button class="tile" disabled><span>04</span><b>?</b></button><button class="tile" disabled><span>05</span><b>?</b></button><button class="tile" disabled><span>06</span><b>?</b></button>
-          <button class="tile" disabled><span>07</span><b>?</b></button><button class="tile" disabled><span>08</span><b>?</b></button><button class="tile" disabled><span>09</span><b>?</b></button>
-        </div>
-        <div class="round-footer"><div class="at-risk"><span>POINTS AT RISK</span><strong id="atRisk">0</strong><small id="streak">STREAK ×0</small></div><div class="game-actions"><button id="bankButton" class="button button-secondary" disabled>BANK POINTS</button><button id="mainButton" class="button button-primary">LOG IN TO PLAY <span>→</span></button></div></div>
-        <div class="microcopy">Your bank is safe. Only the points in your current round are at risk.</div>
-      </section>
-      <aside class="side-column">
-        <section class="panel objective-panel"><div class="section-kicker">YOUR NEXT MILESTONE</div><div class="milestone-row"><div class="milestone-icon">✦</div><div><strong id="milestoneTitle">First fortune</strong><span id="milestoneSub">Bank your first 100 points</span></div></div><div class="progress-track"><div id="milestoneProgress" class="progress-fill"></div></div><div class="progress-meta"><span id="milestoneCurrent">0 / 100</span><span id="milestonePercent">0%</span></div></section>
-        <section class="panel profile-panel"><div class="section-kicker">PLAYER PROFILE</div><div id="profileEmpty" class="empty-profile"><div class="avatar">?</div><div><strong>Guest player</strong><span>Create an account to save progress</span></div></div><div id="profileData" class="profile-data hidden"><div class="avatar" id="avatar">—</div><div class="profile-info"><strong id="profileName">player</strong><span id="profileStats">Level 1 · 0 XP</span></div></div><div class="profile-edit"><label for="bioInput">YOUR BIO</label><textarea id="bioInput" maxlength="160" placeholder="Write a short bio..."></textarea><button id="saveBio" class="button button-secondary">SAVE BIO</button><div class="profile-search"><input id="profileSearch" maxlength="16" placeholder="Find a player username"><button id="viewProfile" class="button button-secondary">VIEW</button></div><div id="profileResult" class="profile-result"></div></div><div class="profile-metrics"><div><strong id="bestScore">0</strong><span>BEST RUN</span></div><div><strong id="lifetimeScore">0</strong><span>LIFETIME</span></div><div><strong id="gamesPlayed">0</strong><span>RUNS</span></div></div></section>
-        <section class="panel how-panel"><div class="section-kicker">HOW TO PLAY</div><div class="rule"><span class="rule-icon gem-icon">◆</span><p><strong>Find gems</strong><br>Each gem adds points. Your streak makes every gem worth more.</p></div><div class="rule"><span class="rule-icon bomb-icon">✹</span><p><strong>Avoid the bomb</strong><br>Hit it and lose the points you haven't banked.</p></div><div class="rule"><span class="rule-icon bank-icon">↗</span><p><strong>Know when to bank</strong><br>Bank safely, or push your luck for the perfect round bonus.</p></div></section>
-      </aside>
-    </div>
-    <section class="panel leaderboard-panel"><div class="leaderboard-head"><div><div class="section-kicker">THE HALL OF FAME</div><h2>Global leaderboard</h2><p>Best runs from players around the world.</p></div><div class="live-tag"><i></i> LIVE RANKINGS</div></div><div class="leaderboard-table-wrap"><table><thead><tr><th>RANK</th><th>PLAYER</th><th>BEST RUN</th><th>LIFETIME</th></tr></thead><tbody id="leaderboard"><tr><td colspan="4" class="table-loading">Loading players…</td></tr></tbody></table></div><div class="leaderboard-foot">Scores update when a player cashes out their run.</div></section>
-    <footer><span>◆ LUCKY 9</span><span>PLAY SMART. KNOW WHEN TO WALK AWAY.</span></footer>
-  </main>
-  <div id="modal" class="modal hidden"><div class="modal-backdrop" data-close="true"></div><div class="modal-card"><button id="closeModal" class="close-modal" aria-label="Close">×</button><div class="modal-mark">◆</div><div class="section-kicker">YOUR PLAYER ACCOUNT</div><h2 id="modalTitle">Welcome back</h2><p id="modalDescription">Log in to save your scores and join the global leaderboard.</p><div class="auth-tabs"><button id="loginTab" class="active">LOG IN</button><button id="registerTab">CREATE ACCOUNT</button></div><form id="authForm"><label for="username">USERNAME</label><input id="username" name="username" autocomplete="username" minlength="3" maxlength="16" placeholder="lowercase_username" required><div class="input-hint">3–16 characters · lowercase letters, numbers and _</div><label for="password">PASSWORD</label><input id="password" name="password" type="password" autocomplete="current-password" minlength="8" maxlength="72" placeholder="At least 8 characters" required><div id="authError" class="auth-error"></div><button id="authSubmit" class="button button-primary full-button" type="submit">LOG IN <span>→</span></button></form><div class="security-note">Passwords are securely hashed. Never reuse a password from another account.</div></div></div>
-  <div id="profileModal" class="modal hidden"><div class="modal-backdrop" data-profile-close="true"></div><div class="modal-card"><button id="closeProfile" class="close-modal" aria-label="Close">×</button><div class="modal-mark">◆</div><div class="section-kicker">PLAYER PROFILE</div><h2 id="publicName">player</h2><p id="publicBio">No bio yet.</p><div id="publicStats" class="public-stats"></div><button id="profileCloseButton" class="button button-primary full-button">CLOSE</button></div></div>
-  <div id="resultModal" class="modal hidden"><div class="modal-backdrop"></div><div class="modal-card result-card"><div class="modal-mark">✦</div><div class="section-kicker">RUN COMPLETE</div><h2 id="resultTitle">Cashed out!</h2><p id="resultText">Your score has been saved.</p><div class="result-score" id="resultScore">0</div><div class="result-caption">POINTS BANKED</div><button id="resultClose" class="button button-primary full-button">BACK TO THE GAME <span>→</span></button></div></div>
-  <script src="/app.js"></script>
-</body>
-</html>
+<div class="pattern pattern-a"></div><div class="pattern pattern-b"></div><div class="pattern pattern-c"></div>
+<header class="topbar"><a class="brand" href="#"><span class="brand-mark">✳</span> LUCKY<span>9</span></a><div class="top-right"><span id="connection" class="connection">CONNECTING</span><button id="accountButton" class="account-button">LOG IN ↗</button></div></header>
+<main class="wrap">
+<section class="hero"><div class="eyebrow">✦ THE COLOURFUL ARCADE ✦</div><h1>GOOD VIBES.<br><span>GREAT GAMES.</span></h1><p>Ten little challenges. Endless high-score energy.</p><div class="hero-stickers"><span>✿ PLAY</span><span>✦ SCORE</span><span>★ REPEAT</span></div></section>
+<section class="ticker"><span>FREE TO PLAY</span><b>✳</b><span>NO DEPOSITS</span><b>✳</b><span>JUST HIGH SCORES</span><b>✳</b><span>ALL SKILL</span></section>
+<section class="stats"><div><small>YOUR BEST</small><strong id="bestScore">0</strong></div><div><small>ARCADE RUNS</small><strong id="gamesPlayed">0</strong></div><div><small>LEVEL</small><strong id="level">1</strong></div><div><small>XP</small><strong id="xp">0</strong></div></section>
+<section class="section-head"><div><small>CHOOSE YOUR CHALLENGE</small><h2>The arcade <span>★</span></h2></div><span class="free-pill">10 GAMES · FREE</span></section>
+<section id="gameGrid" class="game-grid">
+<button class="game-card peach" data-game="gem-match"><span class="card-icon">💎</span><b>Gem Match</b><small>Find matching pairs</small><i>PLAY ↗</i></button>
+<button class="game-card blue" data-game="reaction-rush"><span class="card-icon">⚡</span><b>Reaction Rush</b><small>Tap when it turns green</small><i>PLAY ↗</i></button>
+<button class="game-card lilac" data-game="memory-wave"><span class="card-icon">🌀</span><b>Memory Wave</b><small>Remember the sequence</small><i>PLAY ↗</i></button>
+<button class="game-card lime" data-game="colour-chaos"><span class="card-icon">🎨</span><b>Colour Chaos</b><small>Pick the named colour</small><i>PLAY ↗</i></button>
+<button class="game-card orange" data-game="number-rush"><span class="card-icon">🔢</span><b>Number Rush</b><small>Tap numbers in order</small><i>PLAY ↗</i></button>
+<button class="game-card pink" data-game="shape-shift"><span class="card-icon">🔷</span><b>Shape Shift</b><small>Spot the odd shape</small><i>PLAY ↗</i></button>
+<button class="game-card mint" data-game="neon-dodge"><span class="card-icon">🚀</span><b>Neon Dodge</b><small>Dodge the moving blocks</small><i>PLAY ↗</i></button>
+<button class="game-card yellow" data-game="quick-math"><span class="card-icon">➕</span><b>Quick Math</b><small>Beat the maths clock</small><i>PLAY ↗</i></button>
+<button class="game-card violet" data-game="tile-tap"><span class="card-icon">🟣</span><b>Tile Tap</b><small>Hit the glowing tiles</small><i>PLAY ↗</i></button>
+<button class="game-card teal" data-game="pattern-pop"><span class="card-icon">✳️</span><b>Pattern Pop</b><small>Repeat the colour pattern</small><i>PLAY ↗</i></button>
+</section>
+<section id="playArea" class="play-area hidden"><div class="play-head"><button id="backButton" class="back-button">← ALL GAMES</button><span id="gameTag" class="game-tag">ARCADE CHALLENGE</span></div><div class="play-title"><div><small id="gameKicker">READY?</small><h2 id="gameTitle">Game title</h2><p id="gameDescription"></p></div><div class="score-chip">SCORE <strong id="liveScore">0</strong></div></div><div id="gameStage" class="game-stage"><p>Choose a game to start.</p></div><div class="play-foot"><span id="gameStatus">Ready when you are.</span><button id="startButton" class="start-button">START GAME ↗</button></div></section>
+<section class="leaderboard panel"><div class="section-head"><div><small>THE HIGH SCORE CLUB</small><h2>Leaderboard <span>🏆</span></h2></div><span class="live-pill">● LIVE SCORES</span></div><div class="table-wrap"><table><thead><tr><th>RANK</th><th>PLAYER</th><th>BEST SCORE</th><th>ARCADE POINTS</th></tr></thead><tbody id="leaderboard"><tr><td colspan="4">Loading scores…</td></tr></tbody></table></div><p class="footnote">Scores are earned by playing free skill-based arcade games. No cash prizes or wagers.</p></section>
+<footer><span>✳ LUCKY 9</span><span>PLAY BRIGHT. PLAY FAIR.</span><span>MADE FOR THE FUN OF IT</span></footer>
+</main>
+<div id="modal" class="modal hidden"><div class="modal-shade" data-close="1"></div><section class="modal-card"><button id="closeModal" class="close-x">×</button><div class="modal-logo">✳</div><h2 id="modalTitle">Welcome back!</h2><p id="modalDescription">Log in to save your scores and join the arcade leaderboard.</p><div class="auth-tabs"><button id="loginTab" class="active">LOG IN</button><button id="registerTab">CREATE ACCOUNT</button></div><form id="authForm"><label for="username">USERNAME</label><input id="username" name="username" autocomplete="username" minlength="3" maxlength="16" required><label for="password">PASSWORD</label><input id="password" name="password" type="password" autocomplete="current-password" minlength="8" maxlength="72" required><div id="authError" class="auth-error" role="alert"></div><button id="authSubmit" class="start-button full">LOG IN ↗</button></form><small class="security-note">Your account saves your profile, XP and high scores.</small></section></div>
+</body></html>
