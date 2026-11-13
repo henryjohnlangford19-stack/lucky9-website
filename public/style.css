@@ -167,3 +167,21 @@ form input:focus{outline:2px solid #ec4e98}
   font-family:"Bowlby One SC","DM Mono",sans-serif;
   letter-spacing:1px;
 }
+
+/* Full-page liquid-marble backdrop: keep the artwork visible between all sections */
+body:before{
+  content:"";position:fixed;inset:0;z-index:-3;pointer-events:none;
+  background-image:url('/liquid-pattern.svg');
+  background-size:cover;background-position:center center;background-repeat:no-repeat;
+  opacity:.82;mix-blend-mode:normal;
+}
+body{background:#071321}
+.topbar{background:rgba(8,14,27,.94)}
+.stats>div,.play-area,.panel,.modal-card{
+  background:rgba(10,22,35,.94);
+  backdrop-filter:blur(5px);
+}
+.game-card{border:1px solid #f0a05a;box-shadow:4px 4px rgba(4,10,18,.9)}
+@media(max-width:700px){
+ body:before{background-size:auto 100%;background-position:center;opacity:.72}
+}
