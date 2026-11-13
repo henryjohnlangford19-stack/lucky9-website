@@ -77,6 +77,7 @@ $("gameStage").addEventListener("click",e=>{const b=e.target.closest("[data-hold
 $("gameStage").addEventListener("click",e=>{const b=e.target.closest("[data-keno]");if(b&&!state.done){const n=Number(b.dataset.keno);if(state.picks.includes(n))state.picks=state.picks.filter(x=>x!==n);else if(state.picks.length<10)state.picks.push(n);drawKeno();}});
 $("backButton").onclick=()=>{stopTimers();$("playArea").classList.add("hidden");$("gameGrid").classList.remove("hidden");active=null;};
 $("startButton").onclick=startGame;
+$("saveButton").onclick=()=>{if(!active)return;if(score<=0){status("Earn some arcade points before saving a record.");return;}saveScore();};
 $("accountButton").onclick=()=>{if(!user){showModal();return;}if(confirm("Log out of "+user.username+"?"))api("/api/logout",{method:"POST"}).then(()=>{user=null;renderUser();sync();}).catch(()=>status("Could not log out. Try again."));};
 $("closeModal").onclick=()=>$("modal").classList.add("hidden");$("modal").onclick=e=>{if(e.target.dataset.close)$("modal").classList.add("hidden");};$("loginTab").onclick=()=>setAuthMode("login");$("registerTab").onclick=()=>setAuthMode("register");
 $("username").addEventListener("input",e=>{const p=e.target.selectionStart;e.target.value=e.target.value.toLowerCase().replace(/[^a-z0-9_]/g,"");e.target.setSelectionRange(p,p);});
