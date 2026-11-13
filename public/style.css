@@ -242,3 +242,28 @@ button,input{touch-action:manipulation}
 @media(hover:none){
   .game-card:hover{transform:none;box-shadow:4px 4px 0 #060b14}
 }
+
+/* Cross-device arcade input and layout safeguards */
+button,[role="button"]{touch-action:manipulation}
+.game-stage{touch-action:pan-y}
+.dodge-lane{touch-action:none;user-select:none;-webkit-user-select:none}
+.dodge-lane button,.challenge-btn,.colour-option,.target-dot{touch-action:manipulation}
+.game-card{min-height:180px}
+.game-card:focus-visible,.challenge-btn:focus-visible,.start-button:focus-visible,.back-button:focus-visible,.account-button:focus-visible{outline:3px solid #f4d54b;outline-offset:3px}
+#gameStage button:disabled{opacity:.6;cursor:default}
+@media(max-width:850px){.game-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:560px){
+  .game-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .game-card{min-height:158px;padding:13px}
+  .game-card b{font-size:18px}
+  .game-card small{font-size:11px}
+  .play-area{padding:14px;margin:24px 0}
+  .play-title{align-items:flex-start;flex-wrap:wrap}
+  .play-title h2{font-size:clamp(24px,7vw,34px)}
+  .game-stage{min-height:230px;padding:12px;gap:10px}
+  .challenge-btn{min-width:52px;min-height:52px;padding:10px}
+  .colour-option{width:min(21vw,88px);height:64px}
+  .dodge-lane{height:200px}
+  .play-foot{align-items:stretch;flex-direction:column}
+  .play-foot .start-button{width:100%;min-height:48px}
+}
