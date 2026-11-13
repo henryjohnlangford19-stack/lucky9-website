@@ -390,3 +390,20 @@ img,svg,video,canvas{max-width:100%;height:auto}
 @media(hover:none){
   .game-card:hover{transform:none}
 }
+
+
+/* Reference-label display lettering: Oi's irregular, rounded heavy forms */
+:root{--l9-display:"Oi","Bowlby One SC","Fredoka",system-ui,sans-serif}
+.brand,.hero h1,.section-head h2,.play-title h2,.modal-card h2,.stats strong,.game-card b{
+  font-family:"Oi","Bowlby One SC","Fredoka",system-ui,sans-serif!important;
+  font-weight:400;
+}
+.brand{font-size:clamp(20px,3vw,27px);letter-spacing:0}
+.hero h1{font-size:clamp(48px,8.5vw,100px);line-height:1.04;letter-spacing:0}
+.section-head h2,.play-title h2,.modal-card h2{letter-spacing:0}
+.game-card b{font-size:clamp(16px,2vw,21px);line-height:1.2;letter-spacing:0}
+.stats strong{letter-spacing:0}
+@media(max-width:560px){
+ .hero h1{font-size:clamp(40px,11vw,68px);line-height:1.08}
+ .game-card b{font-size:clamp(15px,4vw,18px)}
+}
