@@ -407,3 +407,18 @@ img,svg,video,canvas{max-width:100%;height:auto}
  .hero h1{font-size:clamp(40px,11vw,68px);line-height:1.08}
  .game-card b{font-size:clamp(15px,4vw,18px)}
 }
+
+
+/* Main centre headline: decorative wavy lettering inspired by the label wordmark */
+.hero h1{
+  font-family:"Henny Penny","Oi",cursive!important;
+  font-weight:400;
+  letter-spacing:.015em;
+  line-height:1.12;
+  text-transform:uppercase;
+  text-shadow:2px 2px #11101d,4px 4px #a63d78;
+}
+.hero h1 span{font-family:inherit}
+@media(max-width:560px){
+  .hero h1{font-size:clamp(38px,10.5vw,64px);line-height:1.16}
+}
