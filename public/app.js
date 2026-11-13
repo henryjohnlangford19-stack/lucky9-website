@@ -18,7 +18,9 @@ const games={
 };
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function setScore(n){score=n;$("liveScore").textContent=n;}
-function setStatus(s){const el=$("gameStatus");if(el)el.textContent=s;}\nwindow.addEventListener("error",e=>{if(active)setStatus("Game error: "+(e.message||"Please restart this round."));});\nwindow.addEventListener("unhandledrejection",e=>{if(active)setStatus("Connection error: "+(e.reason?.message||"Please try again."));});
+function setStatus(s){const el=$("gameStatus");if(el)el.textContent=s;}
+window.addEventListener("error",e=>{if(active)setStatus("Game error: "+(e.message||"Please restart this round."));});
+window.addEventListener("unhandledrejection",e=>{if(active)setStatus("Connection error: "+(e.reason?.message||"Please try again."));});
 function renderUser(){if(!user){$("accountButton").textContent="LOG IN ↗";$("bestScore").textContent="0";$("gamesPlayed").textContent="0";$("level").textContent="1";$("xp").textContent="0";return}$("accountButton").textContent=user.username.toUpperCase()+" ↗";$("bestScore").textContent=Number(user.bestScore||0).toLocaleString();$("gamesPlayed").textContent=Number(user.gamesPlayed||0).toLocaleString();$("level").textContent=user.level;$("xp").textContent=Number(user.xp||0).toLocaleString();}
 async function refreshLeaderboard(){try{const d=await api("/api/leaderboard");$("leaderboard").innerHTML=d.players.length?d.players.map(p=>"<tr><td>#"+p.rank+"</td><td>"+escapeHtml(p.username)+"</td><td>"+Number(p.bestScore).toLocaleString()+"</td><td>"+Number(p.lifetimeScore).toLocaleString()+"</td></tr>").join(""):'<tr><td colspan="4">No scores yet. Be the first to play!</td></tr>';}catch{$("leaderboard").innerHTML='<tr><td colspan="4">Leaderboard unavailable right now.</td></tr>';}}
 function showModal(){ $("modal").classList.remove("hidden");$("authError").textContent="";}
