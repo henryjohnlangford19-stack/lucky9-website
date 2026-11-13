@@ -285,7 +285,7 @@ app.post("/api/game/cashout", requireAuth, asyncRoute(async (req, res) => {
 }));
 
 
-const arcadeGames = new Set(["gem-match","reaction-rush","memory-wave","colour-chaos","number-rush","shape-shift","neon-dodge","quick-math","tile-tap","pattern-pop"]);
+const arcadeGames = new Set(["slots","blackjack","roulette","poker","baccarat","videopoker","craps","bingo","keno","crash"]);
 app.post("/api/arcade/score", requireAuth, asyncRoute(async (req, res) => {
   const gameId = String(req.body.gameId || "");
   const score = Number(req.body.score);
