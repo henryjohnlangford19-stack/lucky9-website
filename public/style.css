@@ -267,3 +267,50 @@ button,[role="button"]{touch-action:manipulation}
   .play-foot{align-items:stretch;flex-direction:column}
   .play-foot .start-button{width:100%;min-height:48px}
 }
+
+
+/* Ten simulator layouts — touch-friendly on phones and desktop */
+.play-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.play-actions .start-button,.play-actions .back-button{min-height:44px}
+.table-label{width:100%;text-align:center;color:#e9bd67;font:700 11px "DM Mono",monospace;letter-spacing:1.2px;margin:5px 0}
+.card-row{width:100%;display:flex;justify-content:center;gap:9px;flex-wrap:wrap;min-height:88px;align-items:center}
+.playing-card{width:58px;height:80px;border-radius:7px;background:#f9f0df;color:#172033;border:2px solid #d9c6a7;display:flex;flex-direction:column;justify-content:space-between;padding:7px;font:700 18px Georgia,serif;box-shadow:2px 3px 0 #050a13}
+.playing-card strong{font-size:23px;align-self:flex-end}
+.playing-card.red-card{color:#c63c53}
+.hidden-card{background:#59324c;color:#fff;align-items:center;justify-content:center;font-size:30px}
+.action-row{display:flex;justify-content:center;align-items:center;gap:9px;flex-wrap:wrap;width:100%;margin:7px 0}
+.result-banner{width:100%;text-align:center;padding:12px;margin:8px 0;background:#263b35;border:1px solid #b3d65a;color:#e8edb8;font:700 12px "DM Mono",monospace;letter-spacing:1px}
+.small-note{width:100%;text-align:center;color:#c9b8b0;font-size:11px;line-height:1.5}
+.roulette-wheel{width:120px;height:120px;border-radius:50%;display:grid;place-items:center;margin:8px auto;background:#168a55;border:8px solid #e5bd67;box-shadow:0 0 0 4px #4a263e;font:700 35px "DM Mono",monospace;color:#fff}
+.roulette-wheel.red{background:#b72d49}.roulette-wheel.black{background:#161a22}.roulette-wheel.green{background:#168a55}
+.slot-reels{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;width:min(100%,510px);margin:8px auto}
+.slot-reel{display:grid;gap:5px;padding:6px;background:#281c2d;border:1px solid #d78a54;border-radius:4px}
+.slot-reel span{display:grid;place-items:center;min-height:52px;background:#f5e7d1;color:#201728;border-radius:3px;font-size:27px}
+.hold-card{border:0;background:transparent;padding:5px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
+.hold-card.held{background:#34563c;outline:2px solid #d8e34c;border-radius:6px}
+.hold-card small{font:700 9px "DM Mono",monospace;color:#f0d35d}
+.dice-row{display:flex;gap:15px;justify-content:center;width:100%}
+.die{width:68px;height:68px;display:grid;place-items:center;border-radius:12px;background:#f8eddb;color:#182033;border:3px solid #d4aa64;font:700 30px Georgia,serif;box-shadow:3px 4px #050a13}
+.bingo-grid{width:min(100%,510px);display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:4px}
+.bingo-cell{min-width:0;aspect-ratio:1;display:grid;place-items:center;background:#f8eddb;color:#182033;border:1px solid #d4aa64;font:700 clamp(10px,2vw,16px) "DM Mono",monospace}
+.bingo-cell.marked{background:#d8e34c;color:#15202c;box-shadow:inset 0 0 0 2px #263d37}
+.drawn-numbers{width:100%;text-align:center;color:#e9c66c;font:11px "DM Mono",monospace;overflow-wrap:anywhere}
+.keno-grid{width:min(100%,560px);display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px}
+.keno-number{min-width:0;aspect-ratio:1;border:1px solid #95604d;background:#201a2b;color:#f7e7d6;border-radius:3px;font:11px "DM Mono",monospace;cursor:pointer}
+.keno-number.selected{background:#e6d345;color:#111b27;border-color:#fff0a4}
+.crash-display{width:100%;display:flex;flex-direction:column;align-items:center;gap:12px}
+.multiplier{font:700 clamp(38px,9vw,70px) "DM Mono",monospace;color:#e9d34c;text-align:center}
+.crash-track{width:min(100%,540px);height:18px;border:1px solid #e98c54;background:#21192a;border-radius:20px;overflow:hidden}
+.crash-line{height:100%;width:0;background:linear-gradient(90deg,#f28a4a,#e9d34c,#e94d9a);transition:width .05s linear}
+@media(max-width:560px){
+ .play-actions{width:100%;display:grid;grid-template-columns:1fr 1fr}
+ .play-actions button{width:100%;padding:11px 8px;font-size:9px}
+ .playing-card{width:48px;height:69px;padding:5px;font-size:16px}
+ .playing-card strong{font-size:19px}
+ .slot-reel{padding:3px;gap:3px}
+ .slot-reel span{min-height:43px;font-size:21px}
+ .keno-grid{grid-template-columns:repeat(8,minmax(0,1fr));gap:3px}
+ .keno-number{font-size:10px}
+ .bingo-grid{gap:2px}
+ .bingo-cell{font-size:10px}
+}
