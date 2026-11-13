@@ -1,6 +1,8 @@
 const $=id=>document.getElementById(id);
 const api=async(url,options={})=>{const r=await fetch(url,{credentials:"same-origin",cache:"no-store",...options,headers:{"Content-Type":"application/json",...(options.headers||{})},body:options.body?JSON.stringify(options.body):undefined});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Something went wrong.");return d};
-let user=null,authMode="login",active=null,score=0,roundTimer=null,gameState={},busy=false;\nconst scheduledTimeouts=new Set(),scheduledIntervals=new Set();\nfunction later(fn,ms){const id=setTimeout(()=>{scheduledTimeouts.delete(id);fn();},ms);scheduledTimeouts.add(id);return id;}\nfunction every(fn,ms){const id=setInterval(fn,ms);scheduledIntervals.add(id);return id;}
+let user=null,authMode="login",active=null,score=0,roundTimer=null,gameState={},busy=false;
+const scheduledTimeouts=new Set(),scheduledIntervals=new Set();
+function later(fn,ms){const id=setTimeout(()=>{scheduledTimeouts.delete(id);fn();},ms);scheduledTimeouts.add(id);return id;}\nfunction every(fn,ms){const id=setInterval(fn,ms);scheduledIntervals.add(id);return id;}
 const games={
 "gem-match":["Gem Match","Match every pair of symbols.","Clear the board to complete the round."],
 "reaction-rush":["Reaction Test","Wait for the signal, then respond as quickly as possible.","Five rounds. False starts do not count."],
