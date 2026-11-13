@@ -317,3 +317,28 @@ button,[role="button"]{touch-action:manipulation}
 
 .rules-card{width:min(100%,760px);margin:0 auto;padding:18px 20px;border:1px solid #9c674f;background:rgba(22,17,31,.88);color:#f3e5d1;line-height:1.65;font-size:13px;text-align:left}.rules-heading{font:700 10px "DM Mono",monospace;letter-spacing:1.5px;color:#e8c64e;margin-bottom:9px}.rules-card .small-note{margin-top:12px;color:#d9b4ad}
 @media(max-width:560px){.rules-card{padding:14px;font-size:12px}}
+
+
+/* Accessibility and small-screen finishing pass */
+:focus-visible{outline:3px solid #12c8d4!important;outline-offset:3px}
+button,a,input{touch-action:manipulation}
+.modal{overflow-y:auto;overscroll-behavior:contain;padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom))}
+.modal-card{max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain}
+form input{min-height:46px}
+.start-button,.account-button,.back-button,.auth-tabs button{min-height:42px}
+.game-stage{overflow-wrap:anywhere}
+@media(max-width:560px){
+  .modal{place-items:center}
+  .modal-card{width:min(100%,430px);padding:24px 18px}
+  .hero-stickers{gap:6px;flex-wrap:wrap}
+  .hero-stickers span{font-size:8px;padding:7px 10px}
+  .ticker{flex-wrap:wrap;row-gap:5px}
+  .play-head{flex-wrap:wrap}
+  .play-title{align-items:flex-start}
+  .score-chip{flex:0 0 auto}
+  .game-stage{gap:8px}
+  .table-wrap{overscroll-behavior-x:contain}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
