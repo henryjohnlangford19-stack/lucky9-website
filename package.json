@@ -1,12 +1,13 @@
 {
   "name": "lucky9-online",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "LUCKY 9 - online gem risk-and-reward arcade game",
+  "description": "LUCKY 9 - play-money casino arcade",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "simulate": "node scripts/simulate.js"
   },
   "engines": {
     "node": ">=20"

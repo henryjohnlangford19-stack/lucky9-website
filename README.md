@@ -1,6 +1,6 @@
 # LUCKY 9 — Online arcade game
 
-A multiplayer-ready version of LUCKY 9. Players share one global leaderboard.
+A play-money casino arcade. Players share one global leaderboard (richest players).
 
 ## Run locally
 1. Install Node.js 20 or newer.
@@ -10,21 +10,38 @@ A multiplayer-ready version of LUCKY 9. Players share one global leaderboard.
 5. Run `npm install`, then `npm start`.
 6. Open `http://localhost:3000`.
 
-## Gameplay
-- Each round has 9 tiles: 8 gems and 1 hidden bomb.
-- Each gem is worth 10 more points than the previous gem in that round.
-- Bank points to protect them and move to the next round.
-- Hit the bomb and lose only the current round's unbanked points.
-- Find all 8 gems to earn a round-scaled completion bonus; the perfect round is banked automatically.
-- Cash out to save your run score to the global leaderboard and earn XP.
-- Levels are based on XP.
+## Play-money casino
+Ten games using free chips (no real money, ever). New players start with **10,000 chips**; bets run from 10 to 10,000.
+
+| Game | House edge (approx. return) |
+|---|---|
+| Neon Reels (slots) | 91% |
+| Blackjack | 99% with good play (3:2 blackjack, dealer stands on 17) |
+| European Roulette | 97.3% |
+| Texas Hold'em (Casino Hold'em rules) | ~98.7% always-raise |
+| Baccarat | 98.7% Player / 98.8% Banker / 84% Tie |
+| Jacks or Better video poker | 93%+ simple play, ~98% optimal |
+| Craps (Pass Line) | 98.6% |
+| 90-Ball Bingo | 91% |
+| Keno 80 | ~90-93% |
+| Multiplier Lab (crash) | 97% |
+
+Run `npm run simulate` to re-measure these.
+
+### How the wallet works
+- **The server is the boss.** The browser only says "bet 100 on slots". The server checks the balance, shuffles/rolls with `crypto.randomInt`, decides the result and pays out. Nothing the browser sends can change a result or a score.
+- **One database transaction per step.** The user row is locked (`FOR UPDATE`), the bet is taken and the payout paid together, so a crash or a double-tap can't lose or duplicate chips.
+- **Ledger.** Every bet, payout and bonus is a row in `transactions` with the balance afterwards; `users.balance` has a `CHECK (balance >= 0)`.
+- **Unfinished rounds** (blackjack, video poker, Hold'em, bingo, crash) are stored in `active_games`, so a refresh or a lost connection resumes the round. Players can also forfeit.
+- **Free chips.** +2,000 daily bonus (24h cooldown, first one 24h after sign-up) and a +1,000 top-up when you're below the minimum bet (30 min cooldown).
+
+Tables are created automatically on startup (`users`, `transactions`, `active_games`, sessions). Existing accounts keep their data and get a 10,000-chip balance.
 
 ## Accounts and security
-- Usernames are lowercase and restricted to 3–16 letters, digits, or underscores.
+- Usernames are lowercase and restricted to 3-16 letters, digits, or underscores.
 - Passwords are hashed with bcrypt; plaintext passwords are never stored.
-- Login/register requests are rate-limited.
-- Sessions, accounts, scores, and XP are stored in PostgreSQL.
-- Game picks and scoring happen on the server.
+- Login/register and betting requests are rate-limited.
+- Sessions, accounts, wallets and ledgers are stored in PostgreSQL.
 
 ## Free deployment
 This project includes a Render Blueprint configured for a **Free** web service. It intentionally has no paid compute plan and no persistent disk.

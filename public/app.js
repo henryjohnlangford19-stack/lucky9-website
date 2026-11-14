@@ -1,97 +1,364 @@
-const $=id=>document.getElementById(id);
-const api=async(url,options={})=>{const r=await fetch(url,{credentials:"same-origin",cache:"no-store",...options,headers:{"Content-Type":"application/json",...(options.headers||{})},body:options.body?JSON.stringify(options.body):undefined});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Something went wrong.");return d};
-let user=null,authMode="login",active=null,score=0,busy=false,state={},roundTimer=null;
-const games={
-slots:["Neon Reels","A five-reel, three-row symbol-matching simulator.","Spin the reels and learn how paylines, Wilds and Scatters work.","🎰"],
-blackjack:["Blackjack 21","Play a complete card round against an automated dealer.","Reach a hand total closer to 21 than the dealer without going over.","🂡"],
-roulette:["European Roulette","Explore a 37-pocket wheel and its numbered layout.","Choose a colour or number, spin once and inspect the result.","🎡"],
-poker:["Texas Hold'em","Build the best five-card hand from two private cards and five community cards.","Progress through pre-flop, flop, turn, river and showdown.","♠"],
-baccarat:["Baccarat","Watch the Player and Banker hands follow standard drawing rules.","Follow card totals, natural 8/9 and third-card rules.","♦"],
-videopoker:["Jacks or Better","A five-card draw game with hold, draw and hand recognition.","Keep cards, replace the rest and see your final poker hand.","🃏"],
-craps:["Craps","Learn the Pass Line sequence with two six-sided dice.","Roll the come-out, establish a point and resolve the round.","🎲"],
-bingo:["90-Ball Bingo","A UK-style 90-ball ticket with one-line, two-line and full-house milestones.","Draw numbers and watch your ticket get marked automatically.","🔢"],
-keno:["Keno 80","Select up to ten numbers from a board of eighty.","A twenty-number draw reveals how many of your picks match.","◉"],
-crash:["Multiplier Lab","A visual crash-round demonstration with no stake or cash balance.","Watch a multiplier rise and test the stop control using score only.","📈"]
+"use strict";
+/* LUCKY 9 — browser app. The server deals, rolls, pays and keeps the balance; this file only draws what it is told. */
+const $ = id => document.getElementById(id);
+const fmt = n => Number(n).toLocaleString();
+const signed = n => (n > 0 ? "+" : n < 0 ? "−" : "±") + fmt(Math.abs(n));
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+
+async function api(url, options = {}) {
+  const response = await fetch(url, {
+    method: options.method || (options.body ? "POST" : "GET"), credentials: "same-origin", cache: "no-store",
+    headers: { "Content-Type": "application/json" }, body: options.body ? JSON.stringify(options.body) : undefined
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "Something went wrong.");
+  return data;
+}
+
+let user = null, authMode = "login", active = null, pending = null, busy = false, session = 0, bet = 100;
+let ui = { view: null, res: null, live: false };
+const sel = { roulette: { type: "red", number: 7 }, baccarat: "player", keno: [], held: [false, false, false, false, false] };
+let crashClock = null, crashPoll = null, crashStart = 0, polling = false, toastTimer = null;
+try { bet = Number(localStorage.getItem("l9bet")) || 100; } catch (e) { /* storage can be blocked */ }
+
+/* ---------- game info ---------- */
+const games = {
+  slots: ["Neon Reels", "Five reels. Match symbols from the left on the centre line — 🃏 Wilds fill in.", "Pick your bet and spin."],
+  blackjack: ["Blackjack 21", "Beat the dealer without going over 21. Blackjack pays 3:2.", "Place a bet to be dealt in."],
+  roulette: ["European Roulette", "37 pockets, one zero. Choose your bet, then spin.", "Choose a bet, set your stake and spin."],
+  poker: ["Texas Hold'em", "Casino Hold'em: you versus the dealer. Ante, see the flop, then raise or fold.", "Place your ante to see the flop."],
+  baccarat: ["Baccarat", "Back the Player, the Banker or a Tie. Closest to nine wins.", "Choose a side and set your stake."],
+  videopoker: ["Jacks or Better", "Hold the cards you like and draw. A pair of Jacks or better pays.", "Place a bet to be dealt five cards."],
+  craps: ["Craps", "Pass Line bet: win on 7 or 11, lose on 2, 3 or 12, otherwise make the point.", "Place a Pass Line bet and roll."],
+  bingo: ["90-Ball Bingo", "Buy a ticket and draw numbers. One line, two lines and a full house all pay.", "Buy a ticket to start drawing."],
+  keno: ["Keno 80", "Pick 1 to 10 numbers. Twenty are drawn — more matches pay more.", "Pick your numbers, then play."],
+  crash: ["Multiplier Lab", "The multiplier climbs until it crashes. Cash out before it does!", "Place a bet and watch the multiplier rise."]
 };
-function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-function setScore(n){score=n;$("liveScore").textContent=Number(n).toLocaleString();}
-function add(n){setScore(score+n);}
-function status(s){$("gameStatus").textContent=s;}
-function stage(html){$("gameStage").innerHTML=html;}
-function btn(label,action,cls){return '<button type="button" class="'+(cls||"challenge-btn")+'" data-action="'+action+'">'+label+'</button>';}
-function renderUser(){if(!user){$("accountButton").textContent="LOG IN ↗";$("bestScore").textContent="0";$("gamesPlayed").textContent="0";$("level").textContent="1";$("xp").textContent="0";return;}$("accountButton").textContent=user.username.toUpperCase()+" ↗";$("bestScore").textContent=Number(user.bestScore||0).toLocaleString();$("gamesPlayed").textContent=Number(user.gamesPlayed||0).toLocaleString();$("level").textContent=user.level;$("xp").textContent=Number(user.xp||0).toLocaleString();}
-async function refreshLeaderboard(){try{const d=await api("/api/leaderboard");$("leaderboard").innerHTML=d.players.length?d.players.map(p=>"<tr><td>#"+p.rank+"</td><td>"+esc(p.username)+"</td><td>"+Number(p.bestScore).toLocaleString()+"</td><td>"+Number(p.lifetimeScore).toLocaleString()+"</td></tr>").join(""):'<tr><td colspan="4">No scores yet. Be the first to play!</td></tr>';}catch{$("leaderboard").innerHTML='<tr><td colspan="4">Leaderboard unavailable right now.</td></tr>';}}
-function showModal(){$("modal").classList.remove("hidden");$("authError").textContent="";requestAnimationFrame(()=>$("username").focus());}
-function setAuthMode(mode){authMode=mode;$("loginTab").classList.toggle("active",mode==="login");$("registerTab").classList.toggle("active",mode==="register");$("modalTitle").textContent=mode==="login"?"Player login":"Create player account";$("modalDescription").textContent=mode==="login"?"Sign in to access your profile and rankings.":"Register to track scores, experience and leaderboard position.";$("authSubmit").textContent=mode==="login"?"LOG IN ↗":"CREATE ACCOUNT ↗";$("password").autocomplete=mode==="login"?"current-password":"new-password";}
-async function sync(){try{const d=await api("/api/me");user=d.user;renderUser();$("connection").textContent="● ONLINE";}catch{$("connection").textContent="OFFLINE";}}
-function stopTimers(){if(roundTimer){clearInterval(roundTimer);clearTimeout(roundTimer);roundTimer=null;}}
-function openGame(id){if(!games[id])return;stopTimers();active=id;score=0;state={};$("gameGrid").classList.add("hidden");$("playArea").classList.remove("hidden");$("gameTitle").textContent=games[id][0];$("gameDescription").textContent=games[id][1];$("gameKicker").textContent="ARCADE SIMULATOR";$("gameTag").textContent="VIRTUAL POINTS ONLY";setScore(0);status(games[id][2]);const ruleText={
-slots:"5 reels · 3 visible rows · the centre line is checked for matching symbols. Wilds can stand in for regular symbols in this demo. Real slot variants can add Scatter triggers, free-spin rounds, multipliers and different payline systems.",
-blackjack:"Number cards count at face value; J, Q and K count as 10; A counts as 1 or 11. Hit to draw, stand to keep your total. The dealer draws to at least 17. Going above 21 is a bust. This table uses a stand-on-17 dealer rule.",
-roulette:"European roulette has pockets 0–36: 18 red, 18 black and one green zero. Each spin is a fresh result. Choose a colour prediction, then spin to reveal the number and colour.",
-poker:"Texas Hold’em deals two private hole cards, then five shared community cards in stages: flop (three), turn (one), river (one). Your best five-card poker hand determines the showdown category.",
-baccarat:"Aces count 1; 2–9 count face value; 10/J/Q/K count 0. Totals use the final digit. A natural 8 or 9 stops drawing. Player draws on 0–5 and stands on 6–7; Banker follows the standard third-card table.",
-videopoker:"Five cards are dealt. Tap any cards to hold them, then draw replacements for the rest. This Jacks or Better demo recognises standard poker hands; a pair of Jacks or better is the qualifying hand.",
-craps:"Come-out: 7 or 11 wins; 2, 3 or 12 loses; 4, 5, 6, 8, 9 or 10 establishes the point. After a point, roll it again before a 7 to complete the Pass Line round.",
-bingo:"A 90-ball ticket has 3 rows and 9 columns, with 5 numbers per row. Numbers are drawn from 1–90. Complete one row, then two rows, then all 15 numbers for a full house.",
-keno:"Select up to 10 distinct numbers from 1–80. The simulator draws 20 different numbers. Your result is the number of selected values found in the draw.",
-crash:"A multiplier rises from 1.00× until the round ends at a randomly generated crash point. Press STOP before the round ends. This is a timing demonstration using points only, not a stake or cash-out."
+const ruleText = {
+  slots: "5 reels × 3 rows. Only the centre line pays: 3, 4 or 5 matching symbols counted from the left (🃏 Wilds count as any symbol). Rarer symbols pay more — five 7️⃣ pays 720×. Return to player is about 91%.",
+  blackjack: "Cards count face value, J/Q/K = 10, A = 1 or 11. Dealer stands on all 17s. A win pays 1:1, Blackjack pays 3:2, a tie is a push. You can double down on your first two cards. Return is about 99% with good play.",
+  roulette: "Pockets 0–36 (one green zero). Red/Black, Odd/Even and 1–18 / 19–36 pay 1:1. Dozens pay 2:1. A single number pays 35:1. Zero beats every outside bet. Return is 97.3%.",
+  poker: "Pay an ante and get two cards plus a three-card flop. Raise (2× ante) to see the turn and river, or fold. Dealer needs a pair of 4s or better to qualify. Win: ante and raise pay 1:1 and a straight or better earns an ante bonus. Dealer doesn't qualify: ante pays, raise is returned.",
+  baccarat: "Aces = 1, 2–9 face value, 10/J/Q/K = 0, totals use the last digit. Player pays 1:1, Banker pays 0.95:1 (5% commission), Tie pays 8:1 (Player/Banker bets push on a tie). Standard third-card rules apply.",
+  videopoker: "Five cards, hold any, draw the rest. Pays: Jacks+ 1×, Two Pair 2×, Trips 3×, Straight 4×, Flush 6×, Full House 9×, Quads 25×, Straight Flush 50×, Royal Flush 250×.",
+  craps: "Come-out: 7 or 11 wins, 2, 3 or 12 loses, any other total becomes the point. Roll the point again before a 7 to win. The Pass Line pays 1:1 (return 98.6%).",
+  bingo: "A 90-ball ticket has 3 rows × 9 columns, 15 numbers. Up to 60 numbers are called. One line pays 2×, two lines 6×, a full house 80×. Draw one at a time or auto-draw.",
+  keno: "Pick 1–10 numbers from 1–80. The server draws 20. The prize depends on how many of your picks match — and the more you pick, the bigger the top prize (up to 5,000×).",
+  crash: "The multiplier rises from 1.00×. Press CASH OUT to take your stake × the current multiplier. If it crashes first, the stake is lost. The crash point is generated on the server (return about 97%)."
 };
-stage('<div class="rules-card"><div class="rules-heading">HOW THIS GAME WORKS</div><div>'+esc(ruleText[id])+'</div><div class="small-note">Educational arcade simulator · virtual points only · no wagers or cash prizes</div></div>');$("startButton").disabled=false;$("startButton").textContent="START SIMULATOR ↗";$("playArea").scrollIntoView({behavior:"smooth",block:"start"});}
-function endGame(message){stopTimers();$("startButton").disabled=false;$("startButton").textContent="PLAY AGAIN ↻";status(message);if(!user){status(message+" Log in to save your score.");return;}saveScore();}
-async function saveScore(){if(busy||!active)return;busy=true;try{const d=await api("/api/arcade/score",{method:"POST",body:{gameId:active,score:score}});user=d.user;renderUser();await refreshLeaderboard();status("Record saved. +"+d.xpEarned+" XP earned.");}catch(e){status(e.message);}finally{busy=false;}}
-function rand(n){return Math.floor(Math.random()*n);}
-function shuffled(a){return a.slice().sort(()=>Math.random()-.5);}
-const suits=["♠","♥","♦","♣"],ranks=["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
-function deck(){return shuffled(suits.flatMap(s=>ranks.map((r,i)=>({r,s,v:i===0?14:i+1}))));}
-function card(c){return '<span class="playing-card '+("♥♦".includes(c.s)?"red-card":"")+'"><b>'+c.r+'</b><strong>'+c.s+'</strong></span>';}
-function handValue(cards){let total=0,aces=0;cards.forEach(c=>{if(c.r==="A"){total+=11;aces++;}else total+=["K","Q","J"].includes(c.r)?10:Number(c.r);});while(total>21&&aces){total-=10;aces--;}return total;}
-function blackjack(){const d=deck();state={deck:d,player:[d.pop(),d.pop()],dealer:[d.pop(),d.pop()],done:false};drawBlackjack();}
-function drawBlackjack(reveal){const p=state.player,d=state.dealer;stage('<div class="table-label">YOUR HAND · '+handValue(p)+'</div><div class="card-row">'+p.map(card).join("")+'</div><div class="table-label">DEALER · '+(reveal?handValue(d):handValue([d[0]]))+'</div><div class="card-row">'+card(d[0])+(reveal?card(d[1]):'<span class="playing-card hidden-card">?</span>')+'</div><div class="action-row">'+(state.done?btn("DEAL AGAIN","bj-new","start-button"):btn("HIT","bj-hit")+btn("STAND","bj-stand"))+'</div>');}
-function blackjackFinish(){state.done=true;while(handValue(state.dealer)<17)state.dealer.push(state.deck.pop());const p=handValue(state.player),d=handValue(state.dealer);let msg=p>21?"You bust. Dealer wins this practice hand.":d>21?"Dealer busts. Your hand wins.":p>d?"Your hand wins.":p<d?"Dealer wins.":"Push — equal totals.";if(p<=21&&p>d)add(100);else if(p<=21&&p===d)add(25);drawBlackjack(true);status(msg);}
-function roulette(){state.pick=null;stage('<div class="challenge-text">Pick a colour to make a prediction</div><div class="roulette-wheel" id="wheel">0</div><div class="action-row">'+btn("RED","r-red")+btn("BLACK","r-black")+btn("GREEN / ZERO","r-green")+'</div><div class="action-row">'+btn("SPIN WHEEL","r-spin","start-button")+'</div><p class="small-note">European wheel: numbers 1–36 plus one green zero. No stake or prize pool.</p>');}
-function pokerRank(cards){const vals=cards.map(c=>c.v).sort((a,b)=>b-a),counts={};cards.forEach(c=>counts[c.v]=(counts[c.v]||0)+1);const groups=Object.entries(counts).map(([v,n])=>({v:+v,n})).sort((a,b)=>b.n-a.n||b.v-a.v);const flush=cards.every(c=>c.s===cards[0].s);let uniq=[...new Set(vals)].sort((a,b)=>b-a);if(uniq.includes(14))uniq.push(1);let straight=0,high=0;for(let i=0;i<=uniq.length-5;i++){if(uniq[i]-uniq[i+4]===4){straight=1;high=uniq[i];break;}}if(flush&&straight&&high===14)return [9,"Royal Flush"];if(flush&&straight)return [8,"Straight Flush"];if(groups[0].n===4)return [7,"Four of a Kind"];if(groups[0].n===3&&groups[1].n===2)return [6,"Full House"];if(flush)return [5,"Flush"];if(straight)return [4,"Straight"];if(groups[0].n===3)return [3,"Three of a Kind"];if(groups[0].n===2&&groups[1].n===2)return [2,"Two Pair"];if(groups[0].n===2)return [1,"One Pair"];return [0,"High Card"];}
-function poker(){const d=deck();state={deck:d,hole:[d.pop(),d.pop()],board:[],phase:0};drawPoker();}
-function drawPoker(){const phases=["Pre-flop","Flop","Turn","River","Showdown"];const rank=state.board.length===5?pokerRank(state.hole.concat(state.board))[1]:"";stage('<div class="table-label">'+phases[state.phase]+'</div><div class="table-label">YOUR PRIVATE CARDS</div><div class="card-row">'+state.hole.map(card).join("")+'</div><div class="table-label">COMMUNITY CARDS</div><div class="card-row">'+(state.board.length?state.board.map(card).join(""):'<span class="small-note">Community cards appear here</span>')+'</div>'+(rank?'<div class="result-banner">Best hand: '+rank+'</div>':'')+btn(state.phase===0?"DEAL FLOP":state.phase===1?"DEAL TURN":state.phase===2?"DEAL RIVER":"SHOWDOWN","poker-next","start-button"));if(state.phase===4){const value=pokerRank(state.hole.concat(state.board))[0];add((value+1)*20);status("Showdown complete. "+rank+". Points reflect the hand category, not a wager.");}}
-function baccaratThird(){const d=deck();state={deck:d,p:[d.pop(),d.pop()],b:[d.pop(),d.pop()],done:false};const val=a=>a.reduce((t,c)=>t+(c.r==="A"?1:["10","J","Q","K"].includes(c.r)?0:Number(c.r)),0)%10;const pv=val(state.p),bv=val(state.b);if(pv<8&&bv<8){let pc=null;if(pv<=5){pc=d.pop();state.p.push(pc);}const p=val(state.p),b=val(state.b);let bankerDraw=false;if(!pc)bankerDraw=b<=5;else if(b<=2)bankerDraw=true;else if(b===3)bankerDraw=pc.r!=="8";else if(b===4)bankerDraw=["2","3","4","5","6","7"].includes(pc.r);else if(b===5)bankerDraw=["4","5","6","7"].includes(pc.r);else if(b===6)bankerDraw=["6","7"].includes(pc.r);if(bankerDraw)state.b.push(d.pop());}const p=val(state.p),b=val(state.b);state.result=p>b?"PLAYER":b>p?"BANKER":"TIE";state.done=true;state.pv=p;state.bv=b;stage('<div class="table-label">PLAYER · '+p+'</div><div class="card-row">'+state.p.map(card).join("")+'</div><div class="table-label">BANKER · '+b+'</div><div class="card-row">'+state.b.map(card).join("")+'</div><div class="result-banner">'+state.result+' WINS'+(state.p.length===2&&p>=8?" · PLAYER NATURAL":"")+(state.b.length===2&&b>=8?" · BANKER NATURAL":"")+'</div>'+btn("DEAL NEXT ROUND","bac-next","start-button"));add(state.result==="TIE"?30:20);status("Automatic drawing rules applied. "+state.result+" hand is closest to nine.");}
-function videoPoker(){state={d:deck().slice(0,5),held:[false,false,false,false,false],drawn:false};drawVideo();}
-function drawVideo(){stage('<div class="table-label">'+(state.drawn?"FINAL HAND":"TAP CARDS TO HOLD")+'</div><div class="card-row">'+state.d.map((c,i)=>'<button class="hold-card '+(state.held[i]?"held":"")+'" data-hold="'+i+'">'+card(c)+(state.held[i]?'<small>HELD</small>':'<small>HOLD</small>')+'</button>').join("")+'</div>'+btn(state.drawn?"DEAL AGAIN":"DRAW REPLACEMENTS",state.drawn?"vp-new":"vp-draw","start-button")+(state.drawn?'<div class="result-banner">'+pokerRank(state.d)[1]+'</div>':""));}
-function craps(){state={phase:"comeout",point:null,rolls:0};drawCraps("Press roll to begin the come-out roll.");}
-function drawCraps(msg){stage('<div class="dice-row"><span class="die">'+(state.last?state.last[0]:"–")+'</span><span class="die">'+(state.last?state.last[1]:"–")+'</span></div><div class="table-label">TOTAL · '+(state.last?state.last[0]+state.last[1]:"—")+'</div><div class="result-banner">'+(state.point?"POINT "+state.point:"COME-OUT")+'</div>'+btn("ROLL DICE","craps-roll","start-button")+'<p class="small-note">'+msg+'</p>');}
-function bingo(){const cols=Array.from({length:9},(_,i)=>Array.from({length:10},(_,j)=>i*10+j+1));const grid=Array.from({length:3},()=>Array(9).fill(null));for(let c=0;c<9;c++){const rows=shuffled([0,1,2]).slice(0,c===0||c===8?1:rand(2)+1);rows.forEach(r=>grid[r][c]=cols[c][rand(cols[c].length)]);}for(let r=0;r<3;r++){while(grid[r].filter(Boolean).length<5){const c=rand(9);if(grid[r][c]===null)grid[r][c]=cols[c][rand(cols[c].length)];}while(grid[r].filter(Boolean).length>5){const c=rand(9);if(grid[r][c]!==null)grid[r][c]=null;}}state={grid,drawn:[],done:false};drawBingo();}
-function drawBingo(){stage('<div class="table-label">90-BALL TICKET · '+state.drawn.length+' NUMBERS CALLED</div><div class="bingo-grid">'+state.grid.flatMap((row,r)=>row.map((n,c)=>'<span class="bingo-cell '+(n&&state.drawn.includes(n)?"marked":"")+'">'+(n||"")+'</span>')).join("")+'</div><div class="drawn-numbers">'+state.drawn.slice(-8).join(" · ")+'</div>'+btn(state.done?"NEW TICKET":"DRAW NEXT NUMBER",state.done?"bingo-new":"bingo-draw","start-button"));}
-function keno(){state={picks:[],drawn:[],done:false};drawKeno();}
-function drawKeno(){stage('<div class="table-label">CHOOSE UP TO 10 NUMBERS · '+state.picks.length+' SELECTED</div><div class="keno-grid">'+Array.from({length:80},(_,i)=>'<button class="keno-number '+(state.picks.includes(i+1)?"selected":"")+'" data-keno="'+(i+1)+'">'+(i+1)+'</button>').join("")+'</div>'+(state.done?'<div class="result-banner">'+state.matches+' MATCHES</div>'+btn("NEW ROUND","keno-new","start-button"):btn("DRAW 20 NUMBERS","keno-draw","start-button")));}
-function crash(){state={running:false,mult:1,crashAt:1.2+Math.random()*7,stopped:false};stage('<div class="crash-display"><div class="multiplier" id="multiplier">1.00×</div><div class="crash-track"><div class="crash-line" id="crashLine"></div></div><p class="small-note">This is a visual timing experiment. No stake, cash balance or cash prize.</p>'+btn("START ROUND","crash-start","start-button")+'</div>');}
-function startGame(){if(!active)return;stopTimers();setScore(0);$("startButton").disabled=true;try{({slots,blackjack,roulette,poker,baccarat: baccRound,videopoker:videoPoker,craps,bingo,keno,crash})[active]();}catch(e){console.error(e);status("Could not start this simulator. Try again.");$("startButton").disabled=false;}}
-function slots(){const symbols=["🍒","🍋","🔔","💎","7️⃣","⭐","🃏"];const reels=Array.from({length:5},()=>Array.from({length:3},()=>symbols[rand(symbols.length)]));state={reels};stage('<div class="slot-reels">'+reels.map((col,i)=>'<div class="slot-reel" data-reel="'+i+'">'+col.map(s=>'<span>'+s+'</span>').join("")+'</div>').join("")+'</div><div class="small-note">Five reels · three visible rows · centre-line demonstration</div>'+btn("SPIN REELS","slot-spin","start-button"));status("Symbols are generated independently for this demonstration.");}
-function spinSlots(){const symbols=["🍒","🍋","🔔","💎","7️⃣","⭐","🃏"];const reels=Array.from({length:5},()=>Array.from({length:3},()=>symbols[rand(symbols.length)]));state.reels=reels;const centre=reels.map(c=>c[1]);const counts={};centre.forEach(s=>counts[s]=(counts[s]||0)+1);const best=Math.max(...Object.values(counts));const wilds=centre.filter(s=>s==="🃏").length;const match=Math.max(best,wilds+1);const points=match>=3?match*25:0;add(points);stage('<div class="slot-reels">'+reels.map(col=>'<div class="slot-reel">'+col.map(s=>'<span>'+s+'</span>').join("")+'</div>').join("")+'</div><div class="result-banner">'+(points?"CENTRE LINE MATCH · +"+points+" POINTS":"NO CENTRE-LINE MATCH")+'</div>'+btn("SPIN AGAIN","slot-spin","start-button")+'<p class="small-note">Wild substitutes for a regular symbol in this simplified payline demo. Scatter/bonus examples are explained below.</p>');status("Centre-line symbols: "+centre.join(" · "));}
-function baccRound(){baccaratThird();}
-$("gameGrid").addEventListener("click",e=>{const b=e.target.closest("[data-game]");if(b)openGame(b.dataset.game);});
-$("gameStage").addEventListener("click",e=>{const b=e.target.closest("[data-action]");if(!b)return;const a=b.dataset.action;
-if(a==="bj-hit"&&!state.done){state.player.push(state.deck.pop());if(handValue(state.player)>21)blackjackFinish();else drawBlackjack();}
-if(a==="bj-stand"&&!state.done)blackjackFinish();if(a==="bj-new")blackjack();
-if(a==="r-red"||a==="r-black"||a==="r-green"){state.pick=a.slice(2);status("Prediction selected: "+state.pick.toUpperCase());$("gameStage").querySelectorAll('[data-action^="r-"]').forEach(x=>x.classList.toggle("good",x===b));}
-if(a==="r-spin"){const n=rand(37),colour=n===0?"green":([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36].includes(n)?"red":"black");$("wheel").textContent=n;$("wheel").className="roulette-wheel "+colour;const win=state.pick===colour;add(win?50:0);status("Number "+n+" · "+colour.toUpperCase()+". "+(win?"Correct prediction! +50 points.":"Prediction did not match."));}
-if(a==="poker-next"){if(state.phase===0){state.board.push(state.deck.pop(),state.deck.pop(),state.deck.pop());state.phase=1;}else if(state.phase===1){state.board.push(state.deck.pop());state.phase=2;}else if(state.phase===2){state.board.push(state.deck.pop());state.phase=3;}else state.phase=4;drawPoker();}
-if(a==="bac-next")baccaratThird();
-if(a==="vp-new")videoPoker();if(a==="vp-draw"&&!state.drawn){state.d.forEach((c,i)=>{if(!state.held[i])state.d[i]=deck()[0];});state.drawn=true;const rank=pokerRank(state.d);if(rank[0]>=1)add((rank[0]+1)*20);drawVideo();status("Final hand: "+rank[1]+". Jacks or Better pays on a pair of Jacks or higher.");}
-if(a==="craps-roll"){const x=rand(6)+1,y=rand(6)+1,t=x+y;state.last=[x,y];state.rolls++;let msg="";if(state.phase==="comeout"){if(t===7||t===11){msg="Natural winner on the come-out roll.";add(50);state.phase="over";}else if(t===2||t===3||t===12){msg="Craps on the come-out roll. Pass Line loses.";state.phase="over";}else{state.point=t;state.phase="point";msg="Point established. Roll the point again before a seven.";}}else if(t===state.point){msg="Point made. Practice round complete.";add(50);state.phase="over";}else if(t===7){msg="Seven-out. Practice round complete.";state.phase="over";}else msg="Point is "+state.point+". Keep rolling.";drawCraps(msg);if(state.phase==="over"){const next=$("gameStage").querySelector('[data-action="craps-roll"]');next.textContent="NEW COME-OUT";next.dataset.action="craps-new";status(msg);}}
-if(a==="craps-new"){state={phase:"comeout",point:null,rolls:0};drawCraps("New practice round.");}
-if(a==="bingo-draw"){let n;do{n=rand(90)+1;}while(state.drawn.includes(n));state.drawn.push(n);const rows=state.grid.map(r=>r.filter(Boolean).every(v=>state.drawn.includes(v)));const lines=rows.filter(Boolean).length;if(lines===1&&!state.one){state.one=true;add(20);status("One line completed!");}if(lines>=2&&!state.two){state.two=true;add(30);status("Two lines completed!");}if(state.grid.flat().filter(Boolean).every(v=>state.drawn.includes(v))){state.done=true;add(100);status("Full house! Ticket complete.");}drawBingo();}
-if(a==="bingo-new")bingo();
-if(a==="keno-new")keno();if(a==="keno-draw"&&!state.done){if(!state.picks.length){status("Select at least one number first.");return;}state.drawn=shuffled(Array.from({length:80},(_,i)=>i+1)).slice(0,20);state.matches=state.picks.filter(n=>state.drawn.includes(n)).length;state.done=true;add(state.matches*10);drawKeno();status(state.matches+" of your selected numbers matched the 20 drawn numbers.");}
-if(a==="crash-start"){state.running=true;state.stopped=false;state.mult=1;state.started=Date.now();const line=$("crashLine"),m=$("multiplier");b.disabled=true;const stop=btn("STOP DEMO","crash-stop","start-button");b.insertAdjacentHTML("afterend",stop);roundTimer=setInterval(()=>{if(!state.running)return;state.mult=Math.exp((Date.now()-state.started)/2600);m.textContent=state.mult.toFixed(2)+"×";line.style.width=Math.min(100,(state.mult-1)*13)+"%";if(state.mult>=state.crashAt){stopTimers();state.running=false;state.stopped=true;stage('<div class="result-banner">ROUND ENDED AT '+state.crashAt.toFixed(2)+'×</div>'+btn("RUN ANOTHER DEMO","crash-new","start-button"));status("The generated round ended before the stop control was used.");}},50);}
-if(a==="crash-stop"&&state.running){const at=state.mult;state.running=false;stopTimers();add(Math.max(1,Math.floor(at*10)));stage('<div class="multiplier">'+at.toFixed(2)+'×</div><div class="result-banner">DEMO STOPPED · +'+Math.max(1,Math.floor(at*10))+' POINTS</div>'+btn("RUN ANOTHER DEMO","crash-new","start-button"));status("You stopped the animation at "+at.toFixed(2)+"×. Score only; no balance or payout.");}
-if(a==="crash-new")crash();
+const rouletteChoices = [["red", "RED"], ["black", "BLACK"], ["odd", "ODD"], ["even", "EVEN"], ["low", "1–18"], ["high", "19–36"], ["dozen1", "1st 12"], ["dozen2", "2nd 12"], ["dozen3", "3rd 12"]];
+
+/* ---------- small helpers ---------- */
+function status(s) { $("gameStatus").textContent = s; }
+function toast(message) {
+  const t = $("toast"); t.textContent = message; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 3500);
+}
+function btn(label, action, cls, extra) { return '<button type="button" class="' + (cls || "challenge-btn") + '" data-act="' + action + '" ' + (extra || "") + ">" + label + "</button>"; }
+function card(c) { return '<span class="playing-card ' + ("♥♦".includes(c.s) ? "red-card" : "") + '"><b>' + esc(c.r) + "</b><strong>" + esc(c.s) + "</strong></span>"; }
+const hiddenCard = '<span class="playing-card hidden-card">?</span>';
+function banner(res) {
+  if (!res || !res.done) return res && res.message ? '<p class="small-note">' + esc(res.message) + "</p>" : "";
+  return '<div class="result-banner ' + (res.profit > 0 ? "win" : res.profit < 0 ? "lose" : "") + '">' + esc(res.message) + " <b>" + signed(res.profit) + "</b></div>";
+}
+function setSession() { const el = $("liveScore"); el.textContent = signed(session); el.className = session > 0 ? "up" : session < 0 ? "down" : ""; }
+function clampBet() {
+  bet = Math.floor(Number(bet) || 0);
+  const max = user ? Math.min(user.maxBet, Math.max(user.balance, user.minBet)) : 10000;
+  bet = Math.max(user ? user.minBet : 10, Math.min(bet, max));
+  $("betInput").value = bet;
+  try { localStorage.setItem("l9bet", String(bet)); } catch (e) { /* ignore */ }
+}
+function stopTimers() { clearInterval(crashClock); clearInterval(crashPoll); crashClock = crashPoll = null; }
+
+/* ---------- account + wallet ---------- */
+function renderUser() {
+  const set = (id, v) => { $(id).textContent = v; };
+  if (!user) {
+    $("accountButton").textContent = "LOG IN ↗";
+    set("balance", "—"); set("bestScore", "0"); set("gamesPlayed", "0"); set("level", "1");
+    $("bonusButton").classList.add("hidden"); return;
+  }
+  $("accountButton").textContent = user.username.toUpperCase() + " ↗";
+  set("balance", fmt(user.balance)); set("bestScore", fmt(user.bestScore)); set("gamesPlayed", fmt(user.gamesPlayed)); set("level", user.level);
+  const b = user.bonus, bonusBtn = $("bonusButton");
+  const ready = b.rescueReady || b.dailyReady;
+  bonusBtn.classList.toggle("hidden", !ready);
+  bonusBtn.textContent = "CLAIM +" + fmt(b.rescueReady ? b.rescueAmount : b.dailyAmount) + " FREE CHIPS ↗";
+  clampBet();
+}
+async function refreshLeaderboard() {
+  try {
+    const d = await api("/api/leaderboard");
+    $("leaderboard").innerHTML = d.players.length
+      ? d.players.map(p => "<tr><td>#" + p.rank + "</td><td>" + esc(p.username) + "</td><td>" + fmt(p.bestWin) + "</td><td>" + fmt(p.balance) + "</td></tr>").join("")
+      : '<tr><td colspan="4">No players yet. Be the first!</td></tr>';
+  } catch (e) { $("leaderboard").innerHTML = '<tr><td colspan="4">Leaderboard unavailable right now.</td></tr>'; }
+}
+async function sync() {
+  try {
+    const d = await api("/api/me");
+    user = d.user; pending = d.active; renderUser();
+    $("connection").textContent = "● ONLINE";
+  } catch (e) { $("connection").textContent = "OFFLINE"; }
+}
+function showModal(note) {
+  $("modal").classList.remove("hidden"); $("authError").textContent = note || "";
+  requestAnimationFrame(() => $("username").focus());
+}
+function setAuthMode(mode) {
+  authMode = mode;
+  $("loginTab").classList.toggle("active", mode === "login"); $("registerTab").classList.toggle("active", mode === "register");
+  $("modalTitle").textContent = mode === "login" ? "Player login" : "Create player account";
+  $("modalDescription").textContent = mode === "login" ? "Sign in to play with your chips and climb the rankings." : "New players start with 10,000 free play-money chips.";
+  $("authSubmit").textContent = mode === "login" ? "LOG IN ↗" : "CREATE ACCOUNT ↗";
+  $("password").autocomplete = mode === "login" ? "current-password" : "new-password";
+}
+
+/* ---------- selectors shown before a round ---------- */
+const SELECT = {
+  roulette() {
+    const s = sel.roulette;
+    return '<div class="table-label">YOUR BET</div><div class="action-row">' +
+      rouletteChoices.map(([k, l]) => btn(l, "rt:" + k, "challenge-btn" + (s.type === k ? " good" : ""))).join("") +
+      btn("NUMBER", "rt:straight", "challenge-btn" + (s.type === "straight" ? " good" : "")) +
+      '<input id="rouletteNumber" class="num-input" type="number" inputmode="numeric" min="0" max="36" value="' + s.number + '" aria-label="Roulette number"></div>' +
+      '<p class="small-note">Number pays 35:1 · Dozens 2:1 · Colours, odd/even, halves 1:1</p>';
+  },
+  baccarat() {
+    return '<div class="table-label">BACK A SIDE</div><div class="action-row">' +
+      [["player", "PLAYER · 1:1"], ["banker", "BANKER · 0.95:1"], ["tie", "TIE · 8:1"]].map(([k, l]) => btn(l, "bs:" + k, "challenge-btn" + (sel.baccarat === k ? " good" : ""))).join("") + "</div>";
+  },
+  keno() { return ui.view ? "" : kenoGrid(null); }
+};
+function kenoGrid(view) {
+  const picks = view ? view.picks : sel.keno, drawn = view ? view.drawn : [];
+  return '<div class="table-label">' + (view ? view.hits.length + " OF " + picks.length + " MATCHED" : "CHOOSE UP TO 10 NUMBERS · " + picks.length + " SELECTED") + "</div>" +
+    '<div class="keno-grid">' + Array.from({ length: 80 }, (_, i) => {
+      const n = i + 1, p = picks.includes(n), d = drawn.includes(n);
+      return '<button type="button" class="keno-number ' + (p ? "selected " : "") + (d ? "drawn " : "") + (p && d ? "hit" : "") + '" data-keno="' + n + '">' + n + "</button>";
+    }).join("") + "</div>" +
+    (view ? '<p class="small-note">Tap a number to start a new selection.</p>' : "");
+}
+
+/* ---------- round renderers (view = what the server lets us see) ---------- */
+const RENDER = {
+  slots(v, res) {
+    return '<div class="slot-reels">' + v.reels.map(col => '<div class="slot-reel">' + col.map(s => "<span>" + s + "</span>").join("") + "</div>").join("") + "</div>" + banner(res) +
+      '<p class="small-note">Centre line: ' + v.line.join(" · ") + "</p>";
+  },
+  roulette(v, res) { return '<div class="roulette-wheel ' + v.colour + '">' + v.n + "</div>" + banner(res); },
+  baccarat(v, res) {
+    return '<div class="table-label">PLAYER · ' + v.p + '</div><div class="card-row">' + v.player.map(card).join("") + "</div>" +
+      '<div class="table-label">BANKER · ' + v.b + '</div><div class="card-row">' + v.banker.map(card).join("") + "</div>" + banner(res);
+  },
+  craps(v, res) {
+    const last = v.rolls[v.rolls.length - 1];
+    return '<div class="dice-row"><span class="die">' + last[0] + '</span><span class="die">' + last[1] + "</span></div>" +
+      '<div class="table-label">' + (v.point ? "POINT " + v.point : "COME-OUT") + " · " + v.rolls.length + " ROLL" + (v.rolls.length > 1 ? "S" : "") + "</div>" +
+      '<p class="small-note">Rolls: ' + v.rolls.map(r => r[0] + r[1]).join(" → ") + "</p>" + banner(res);
+  },
+  keno(v) { return kenoGrid(v) + banner(ui.res); },
+  blackjack(v, res) {
+    return '<div class="table-label">YOUR HAND · ' + v.pv + '</div><div class="card-row">' + v.player.map(card).join("") + "</div>" +
+      '<div class="table-label">DEALER · ' + v.dv + (v.hiddenCard ? "+" : "") + '</div><div class="card-row">' + v.dealer.map(card).join("") + (v.hiddenCard ? hiddenCard : "") + "</div>" +
+      (res.done ? banner(res) : '<div class="action-row">' + btn("HIT", "hit") + btn("STAND", "stand") + (v.canDouble ? btn("DOUBLE", "double") : "") + "</div>" + banner(res));
+  },
+  videopoker(v, res) {
+    const live = !res.done;
+    return '<div class="table-label">' + (live ? "TAP CARDS TO HOLD" : "FINAL HAND · " + esc(v.result)) + '</div><div class="card-row">' +
+      v.hand.map((c, i) => '<button type="button" class="hold-card ' + (live && sel.held[i] ? "held" : "") + '" data-hold="' + i + '" ' + (live ? "" : "disabled") + ">" + card(c) + (live ? "<small>" + (sel.held[i] ? "HELD" : "HOLD") + "</small>" : "") + "</button>").join("") + "</div>" +
+      (live ? '<div class="action-row">' + btn("DRAW", "draw", "start-button") + "</div>" : "") + banner(res);
+  },
+  poker(v, res) {
+    const live = !res.done;
+    return '<div class="table-label">COMMUNITY CARDS</div><div class="card-row">' + v.board.map(card).join("") + "</div>" +
+      '<div class="table-label">YOUR CARDS' + (v.playerHand ? " · " + esc(v.playerHand) : "") + '</div><div class="card-row">' + v.player.map(card).join("") + "</div>" +
+      '<div class="table-label">DEALER' + (v.dealerHand ? " · " + esc(v.dealerHand) : "") + '</div><div class="card-row">' + (v.dealer ? v.dealer.map(card).join("") : hiddenCard + hiddenCard) + "</div>" +
+      (live ? '<div class="action-row">' + btn("RAISE +" + fmt(v.raiseCost), "raise", "start-button") + btn("FOLD", "fold") + "</div>" : "") + banner(res);
+  },
+  bingo(v, res) {
+    const called = new Set(v.called), last = v.called.slice(-10);
+    return '<div class="table-label">90-BALL TICKET · ' + v.called.length + " / " + v.maxCalls + " CALLED · " + v.lines + " LINE" + (v.lines === 1 ? "" : "S") + "</div>" +
+      '<div class="bingo-grid">' + v.grid.flatMap(row => row.map(n => '<span class="bingo-cell ' + (n && called.has(n) ? "marked" : "") + '">' + (n || "") + "</span>")).join("") + "</div>" +
+      '<div class="drawn-numbers">' + (last.length ? last.join(" · ") : "No numbers called yet") + "</div>" +
+      (res.done ? "" : '<div class="action-row">' + btn("DRAW NEXT", "draw", "start-button") + btn("AUTO DRAW", "auto") + "</div>") + banner(res);
+  },
+  crash(v, res) {
+    if (v.running) return '<div class="crash-display"><div class="multiplier" id="multiplier">' + v.mult.toFixed(2) + '×</div><div class="crash-track"><div class="crash-line" id="crashLine"></div></div>' + btn("CASH OUT", "cashout", "start-button") + "</div>";
+    return '<div class="multiplier">' + (v.cashedAt ? v.cashedAt.toFixed(2) + "×" : "💥 " + v.crashAt.toFixed(2) + "×") + "</div>" +
+      '<p class="small-note">The round ' + (v.cashedAt ? "would have crashed at " : "crashed at ") + v.crashAt.toFixed(2) + "×.</p>" + banner(res);
+  }
+};
+
+function rulesCard(g) {
+  return '<div class="rules-card"><div class="rules-heading">HOW THIS GAME WORKS</div><div>' + esc(ruleText[g]) + '</div><div class="small-note">Play money only · no real-money deposits, wagers or prizes</div></div>';
+}
+function paint() {
+  const g = active;
+  if (!g) return;
+  let html = ui.view ? RENDER[g](ui.view, ui.res || {}) : rulesCard(g);
+  if (!ui.live && SELECT[g]) html += SELECT[g]();
+  $("gameStage").innerHTML = html;
+  const startBtn = $("startButton");
+  startBtn.disabled = ui.live || busy;
+  startBtn.textContent = ui.live ? "ROUND IN PROGRESS" : ui.view ? "PLAY AGAIN ↻" : "PLACE BET ↗";
+  $("saveButton").classList.toggle("hidden", !ui.live);
+  $("betBar").classList.toggle("locked", ui.live);
+}
+
+/* ---------- talking to the server ---------- */
+function handle(res) {
+  if (res.user) { user = res.user; pending = res.done ? null : { game: res.game }; renderUser(); }
+  ui.view = res.view; ui.res = res; ui.live = !res.done;
+  if (res.done) {
+    stopTimers(); session += res.profit; setSession();
+    status(res.message);
+    refreshLeaderboard();
+    if (user && user.balance < user.minBet && user.bonus.rescueReady) toast("You're out of chips — claim your free top-up!");
+  } else if (res.message) status(res.message);
+  if (res.game === "videopoker" && !ui.live) sel.held = [false, false, false, false, false];
+  paint();
+  if (ui.live && res.game === "crash") startCrash(res.view);
+}
+async function call(url, body) {
+  if (busy) return;
+  busy = true; paint();
+  try { handle(await api(url, { body })); }
+  catch (e) { status(e.message); toast(e.message); if (/Finish your/.test(e.message)) sync(); }
+  finally { busy = false; paint(); }
+}
+function params() {
+  if (active === "roulette") return { type: sel.roulette.type, number: sel.roulette.number };
+  if (active === "baccarat") return { side: sel.baccarat };
+  if (active === "keno") return { picks: sel.keno };
+  return {};
+}
+function startRound() {
+  if (!active) return;
+  if (!user) { showModal("Log in to place bets with your free chips."); return; }
+  clampBet();
+  if (bet > user.balance) { status("Not enough chips for that bet."); toast("Not enough chips — lower your bet or claim free chips."); return; }
+  if (active === "keno" && !sel.keno.length) { status("Pick at least one number first."); return; }
+  ui.view = null; ui.res = null;
+  call("/api/casino/start", { game: active, bet, params: params() });
+}
+function act(action) {
+  if (action === "draw" && active === "videopoker") return call("/api/casino/act", { action: "draw", params: { held: sel.held } });
+  call("/api/casino/act", { action });
+}
+
+/* ---------- crash animation ---------- */
+function startCrash(view) {
+  stopTimers();
+  crashStart = Date.now() - view.elapsed;
+  crashClock = setInterval(() => {
+    const m = Math.exp((Date.now() - crashStart) / 2600), el = $("multiplier");
+    if (!el) return;
+    el.textContent = m.toFixed(2) + "×"; $("crashLine").style.width = Math.min(100, (m - 1) * 13) + "%";
+  }, 50);
+  crashPoll = setInterval(async () => {
+    if (polling || busy) return;
+    polling = true;
+    try {
+      const res = await api("/api/casino/act", { body: { action: "poll" } });
+      if (res.done) handle(res); else crashStart = Date.now() - res.view.elapsed;
+    } catch (e) { /* try again on the next tick */ }
+    finally { polling = false; }
+  }, 400);
+}
+
+/* ---------- opening / closing games ---------- */
+function openGame(id) {
+  if (!games[id]) return;
+  stopTimers(); active = id; ui = { view: null, res: null, live: false }; session = 0; setSession();
+  $("gameGrid").classList.add("hidden"); $("playArea").classList.remove("hidden");
+  $("gameTitle").textContent = games[id][0]; $("gameDescription").textContent = games[id][1];
+  $("gameKicker").textContent = "PLAY-MONEY TABLE"; $("gameTag").textContent = "NO REAL MONEY";
+  status(games[id][2]);
+  paint();
+  if (pending && pending.game === id) resume(); else if (pending) status("You have an unfinished " + (games[pending.game] ? games[pending.game][0] : "") + " round — open it to continue.");
+  $("playArea").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+async function resume() {
+  try {
+    const d = await api("/api/me");
+    user = d.user; pending = d.active; renderUser();
+    if (d.active && d.active.game === active) handle({ done: false, game: active, view: d.active.view, message: "Resuming your round.", user });
+  } catch (e) { status(e.message); }
+}
+
+/* ---------- events ---------- */
+$("gameGrid").addEventListener("click", e => { const b = e.target.closest("[data-game]"); if (b) openGame(b.dataset.game); });
+$("gameStage").addEventListener("click", e => {
+  const hold = e.target.closest("[data-hold]");
+  if (hold && ui.live && active === "videopoker") { const i = Number(hold.dataset.hold); sel.held[i] = !sel.held[i]; paint(); return; }
+  const k = e.target.closest("[data-keno]");
+  if (k && !ui.live && active === "keno") {
+    if (ui.view) { ui = { view: null, res: null, live: false }; sel.keno = []; }
+    const n = Number(k.dataset.keno);
+    if (sel.keno.includes(n)) sel.keno = sel.keno.filter(x => x !== n); else if (sel.keno.length < 10) sel.keno.push(n);
+    paint(); return;
+  }
+  const b = e.target.closest("[data-act]");
+  if (!b) return;
+  const a = b.dataset.act;
+  if (a.startsWith("rt:")) { sel.roulette.type = a.slice(3); paint(); return; }
+  if (a.startsWith("bs:")) { sel.baccarat = a.slice(3); paint(); return; }
+  act(a);
 });
-$("gameStage").addEventListener("click",e=>{const b=e.target.closest("[data-hold]");if(b&&!state.drawn){const i=Number(b.dataset.hold);state.held[i]=!state.held[i];drawVideo();}});
-$("gameStage").addEventListener("click",e=>{const b=e.target.closest("[data-keno]");if(b&&!state.done){const n=Number(b.dataset.keno);if(state.picks.includes(n))state.picks=state.picks.filter(x=>x!==n);else if(state.picks.length<10)state.picks.push(n);drawKeno();}});
-$("backButton").onclick=()=>{stopTimers();$("playArea").classList.add("hidden");$("gameGrid").classList.remove("hidden");active=null;};
-$("startButton").onclick=startGame;
-$("saveButton").onclick=()=>{if(!active)return;if(score<=0){status("Earn some arcade points before saving a record.");return;}saveScore();};
-$("accountButton").onclick=()=>{if(!user){showModal();return;}if(confirm("Log out of "+user.username+"?"))api("/api/logout",{method:"POST"}).then(()=>{user=null;renderUser();sync();}).catch(()=>status("Could not log out. Try again."));};
-$("closeModal").onclick=()=>$("modal").classList.add("hidden");document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("modal").classList.contains("hidden"))$("modal").classList.add("hidden");});$("modal").onclick=e=>{if(e.target.dataset.close)$("modal").classList.add("hidden");};$("loginTab").onclick=()=>setAuthMode("login");$("registerTab").onclick=()=>setAuthMode("register");
-$("username").addEventListener("input",e=>{const p=e.target.selectionStart;e.target.value=e.target.value.toLowerCase().replace(/[^a-z0-9_]/g,"");e.target.setSelectionRange(p,p);});
-$("authForm").onsubmit=async e=>{e.preventDefault();$("authError").textContent="";const btn=$("authSubmit");btn.disabled=true;try{const d=await api("/api/"+authMode,{method:"POST",body:{username:$("username").value.trim(),password:$("password").value}});user=d.user;renderUser();$("modal").classList.add("hidden");$("authForm").reset();await refreshLeaderboard();}catch(err){$("authError").textContent=err.message;}finally{btn.disabled=false;setAuthMode(authMode);}};
-(async()=>{await sync();await refreshLeaderboard();})();
+$("gameStage").addEventListener("input", e => {
+  if (e.target.id === "rouletteNumber") { sel.roulette.number = Math.max(0, Math.min(36, Math.floor(Number(e.target.value) || 0))); sel.roulette.type = "straight"; }
+});
+$("betBar").addEventListener("click", e => {
+  const b = e.target.closest("[data-bet]");
+  if (!b || ui.live) return;
+  const v = b.dataset.bet;
+  if (v === "max") bet = user ? Math.min(user.maxBet, user.balance) : 10000;
+  else if (v === "half") bet = Math.floor(bet / 2);
+  else if (v === "double") bet = bet * 2;
+  else bet = Number(v);
+  clampBet();
+});
+$("betInput").addEventListener("change", e => { bet = Number(e.target.value); clampBet(); });
+$("startButton").onclick = startRound;
+$("saveButton").onclick = async () => {
+  if (!ui.live || busy) return;
+  if (!confirm("Forfeit this round? Your stake is lost.")) return;
+  stopTimers();
+  await call("/api/casino/forfeit", {});
+};
+$("backButton").onclick = () => {
+  if (ui.live && !confirm("Your round is still in progress. You can come back to it later. Leave the table?")) return;
+  stopTimers(); active = null;
+  $("playArea").classList.add("hidden"); $("gameGrid").classList.remove("hidden");
+};
+$("bonusButton").onclick = async () => {
+  try {
+    const d = await api("/api/wallet/claim", { body: {} });
+    user = d.user; renderUser(); toast(d.message);
+  } catch (e) { toast(e.message); }
+};
+$("accountButton").onclick = () => {
+  if (!user) { showModal(); return; }
+  if (confirm("Log out of " + user.username + "?")) api("/api/logout", { method: "POST", body: {} }).then(() => { user = null; pending = null; stopTimers(); renderUser(); sync(); }).catch(() => status("Could not log out. Try again."));
+};
+$("closeModal").onclick = () => $("modal").classList.add("hidden");
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("modal").classList.contains("hidden")) $("modal").classList.add("hidden"); });
+$("modal").onclick = e => { if (e.target.dataset.close) $("modal").classList.add("hidden"); };
+$("loginTab").onclick = () => setAuthMode("login");
+$("registerTab").onclick = () => setAuthMode("register");
+$("username").addEventListener("input", e => { const p = e.target.selectionStart; e.target.value = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""); e.target.setSelectionRange(p, p); });
+$("authForm").onsubmit = async e => {
+  e.preventDefault(); $("authError").textContent = "";
+  const submit = $("authSubmit"); submit.disabled = true;
+  try {
+    const d = await api("/api/" + authMode, { body: { username: $("username").value.trim(), password: $("password").value } });
+    user = d.user; pending = null; renderUser(); $("modal").classList.add("hidden"); $("authForm").reset();
+    await refreshLeaderboard();
+    if (authMode === "register") toast("Welcome! You start with " + fmt(user.balance) + " free chips.");
+    if (active) paint();
+  } catch (err) { $("authError").textContent = err.message; }
+  finally { submit.disabled = false; setAuthMode(authMode); }
+};
+(async () => { clampBet(); await sync(); await refreshLeaderboard(); })();
